@@ -364,133 +364,116 @@ function Ticker() {
   );
 }
 
-type PerkIcon = "target" | "qr" | "gift" | "store";
-
-type Perk = {
-  num: string;
-  title: string;
-  text: string;
-  icon: PerkIcon;
-  tilt: string;
-};
-
-const PERKS: Perk[] = [
+const NEIGHBOR_DISCOVERIES = [
   {
-    num: "01",
-    title: "Targeted neighborhoods",
-    text: "We deliver to the Houston areas that matter most to your business — not a random blast into the void.",
-    icon: "target",
-    tilt: "perk--a",
+    id: "events", num: "01", label: "Something to do.",
+    text: "Discover local events and make a plan close to home.",
+    headline: "Good plans start close to home.",
+    note: "Community happenings give neighbors a reason to check the mailer again.",
+    image: "/hln-card-zfold.jpg", crop: "565 510 520 390",
+    alt: "Around Town calendar excerpt from the HLN sample mailer", tag: "Around town",
   },
   {
-    num: "02",
-    title: "Trackable results",
-    text: "Every square carries its own QR code, so every scan is tied to you, your drop, and your route.",
-    icon: "qr",
-    tilt: "perk--b",
+    id: "offers", num: "02", label: "Something useful.",
+    text: "Find an offer from a business right around the corner.",
+    headline: "A local find. A reason to visit.",
+    note: "From a sweet treat to help around the house, local offers make the discovery useful.",
+    image: "/hln-card-inside.jpg", crop: "22 362 510 319",
+    alt: "Bakery and ice cream offer examples from the HLN sample mailer", tag: "Shop the neighborhood",
   },
   {
-    num: "03",
-    title: "$100 monthly giveaway",
-    text: "Your business rides along in our gift-card hunt. Neighbors keep the card just to play.",
-    icon: "gift",
-    tilt: "perk--c",
+    id: "hunt", num: "03", label: "Something to find.",
+    text: "Look a little closer. There are mascots hiding inside.",
+    headline: "Little characters. A bigger adventure.",
+    note: "The Neighborhood Hunt invites readers to explore the mailer as they search for all four mascots.",
+    image: "/hln-card-zfold.jpg", crop: "1110 640 485 395",
+    alt: "Neighborhood Hunt cover excerpt with four local business mascots", tag: "The neighborhood hunt",
   },
   {
-    num: "04",
-    title: "Local businesses only",
-    text: "No national chains, no junk mail. Just trusted Houston shops your neighbors actually use.",
-    icon: "store",
-    tilt: "perk--d",
+    id: "giveaway", num: "04", label: "Something to win.",
+    text: "Join the hunt for a chance at a $100 local gift card.",
+    headline: "Find them. Enter. Shop local.",
+    note: "A monthly giveaway brings the hunt back to the local businesses that make it possible.",
+    image: "/hln-card-zfold.jpg", crop: "18 508 525 255",
+    alt: "One hundred dollar local gift card giveaway excerpt from the HLN sample mailer", tag: "$100 local gift card",
   },
 ];
 
-function PerkIconGlyph({ icon }: { icon: PerkIcon }) {
-  const common = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
+function PerksSection() {
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const moveTab = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let next: number;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") next = (index + 1) % NEIGHBOR_DISCOVERIES.length;
+    else if (event.key === "ArrowUp" || event.key === "ArrowLeft") next = (index + NEIGHBOR_DISCOVERIES.length - 1) % NEIGHBOR_DISCOVERIES.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = NEIGHBOR_DISCOVERIES.length - 1;
+    else return;
+    event.preventDefault();
+    setActiveIndex(next);
+    tabRefs.current[next]?.focus();
   };
 
-  if (icon === "target") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="4.5" />
-        <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-
-  if (icon === "qr") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-        <rect x="3.5" y="3.5" width="6.5" height="6.5" />
-        <rect x="14" y="3.5" width="6.5" height="6.5" />
-        <rect x="3.5" y="14" width="6.5" height="6.5" />
-        <path d="M14 14h3v3h-3zM20.5 14v.01M14 20.5h.01M17.5 17.5h3v3h-3z" />
-      </svg>
-    );
-  }
-
-  if (icon === "gift") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-        <rect x="3.5" y="8" width="17" height="4" />
-        <path d="M5.5 12v8.5h13V12M12 8v12.5" />
-        <path d="M12 8s-3.8-.9-4.8-2.8.9-3.7 2.8-2.8S12 8 12 8zM12 8s3.8-.9 4.8-2.8-.9-3.7-2.8-2.8S12 8 12 8z" />
-      </svg>
-    );
-  }
-
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-      <path d="M4.5 9.5 5.7 4h12.6l1.2 5.5" />
-      <path d="M4.5 9.5V20h15V9.5" />
-      <path d="M4.5 9.5c0 1.4 1.2 2.4 2.5 2.4s2.5-1 2.5-2.4c0 1.4 1.2 2.4 2.5 2.4s2.5-1 2.5-2.4c0 1.4 1.2 2.4 2.5 2.4s2.5-1 2.5-2.4" />
-      <path d="M9.5 20v-5.5h5V20" />
-    </svg>
-  );
-}
-
-function PerksSection() {
-  return (
-    <section className="section perks" id="perks" aria-label="What your business gets">
-      <Reveal className="perks__head">
-        <p className="eyebrow">What your business gets</p>
-        <h2>
+    <section className="section perks" id="perks" aria-labelledby="perks-heading">
+      <div className="perks__head">
+        <p className="eyebrow">Made for the people opening it</p>
+        <h2 id="perks-heading">
           More than an ad. <span className="script">A reason to stay.</span>
         </h2>
-      </Reveal>
+        <p className="perks__intro">Give neighbors something to plan, use, find, and look forward to. Your business is part of the discovery.</p>
+      </div>
 
-      <div className="perks__grid">
-        {PERKS.map((perk, index) => (
-          <motion.article
-            key={perk.num}
-            className={`perk ${perk.tilt}`}
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            style={{ opacity: 0, y: 22 }}
-            transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="perk__num">{perk.num}</span>
-            <span className="perk__icon">
-              <PerkIconGlyph icon={perk.icon} />
-            </span>
-            <h3 className="perk__title">{perk.title}</h3>
-            <p className="perk__text">{perk.text}</p>
-          </motion.article>
+      <div className="discovery">
+        <div className="discovery__choices" role="tablist" aria-label="Explore what is inside the mailer">
+          {NEIGHBOR_DISCOVERIES.map((item, index) => (
+            <button
+              key={item.id}
+              ref={(element) => { tabRefs.current[index] = element; }}
+              className={`discovery__choice${index === activeIndex ? " is-active" : ""}`}
+              type="button" role="tab" id={`discovery-tab-${item.id}`}
+              aria-selected={index === activeIndex}
+              aria-controls={`discovery-panel-${item.id}`}
+              tabIndex={index === activeIndex ? 0 : -1}
+              onClick={() => setActiveIndex(index)}
+              onKeyDown={(event) => moveTab(event, index)}
+            >
+              <span className="discovery__num" aria-hidden="true">{item.num}</span>
+              <span><span className="discovery__label">{item.label}</span><span className="discovery__text">{item.text}</span></span>
+              <svg className="discovery__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+            </button>
+          ))}
+        </div>
+
+        {NEIGHBOR_DISCOVERIES.map((item, index) => (
+          <div key={item.id} className={`discovery__panel discovery__panel--${item.id}`}
+            role="tabpanel" id={`discovery-panel-${item.id}`}
+            aria-labelledby={`discovery-tab-${item.id}`} hidden={activeIndex !== index} tabIndex={0}>
+            <div className="discovery__art">
+              <span className="discovery__backnumber" aria-hidden="true">{item.num}</span>
+              <span className="discovery__tag">{item.tag}</span>
+              <div className="discovery__clipping">
+                <svg viewBox={item.crop} role="img" aria-label={item.alt}>
+                  <image href={item.image} width="1600" height="1043" />
+                </svg>
+              </div>
+              <span className="discovery__annotation" aria-hidden="true">a peek inside</span>
+            </div>
+            <div className="discovery__caption">
+              <h3>{item.headline}</h3>
+              <p>{item.note}</p>
+              <span className="discovery__sample">From our sample mailer · Content varies by issue.</span>
+            </div>
+          </div>
         ))}
       </div>
 
-      <Reveal delay={0.15}>
-        <p className="perks__note">
-          ← that giveaway is why the card survives the recycling pile
-        </p>
-      </Reveal>
+      <div className="perks__takeaway">
+        <svg className="perks__takeaway-star" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 0 31 17 48 24 31 31 24 48 17 31 0 24 17 17Z" fill="currentColor" /></svg>
+        <p>A reason to open it. <span>A reason to explore it.</span> More chances to discover your business.</p>
+        <span className="perks__takeaway-note">That’s the idea behind every fold.</span>
+      </div>
     </section>
   );
 }
