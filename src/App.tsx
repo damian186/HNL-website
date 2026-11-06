@@ -187,46 +187,52 @@ function App() {
           <div className="hero__copy">
             <p className="hero__kicker">
               <span className="hero__kicker-dot" aria-hidden="true" />
-              Houston Local Network · monthly shared mailer
+              Houston Local Network · made for your neighborhood
             </p>
             <h1 className="hero__title">
-              <span className="hero__line">The card your</span>
+              <span className="hero__line">Local mail.</span>
               <span className="hero__line">
-                <span className="hero__mark">neighbors</span>
+                <span className="hero__mark">Worth</span>
               </span>
-              <span className="hero__line">actually keep.</span>
+              <span className="hero__line">opening.</span>
             </h1>
             <p className="hero__sub">
-              One oversized card, thousands of Houston doors. Your business gets
-              its own square — with a QR code that counts every single scan.
+              Put your business in the middle of neighborhood life. Our shared
+              Z-fold mailer brings local offers, community happenings, and a
+              mascot hunt together — with your business along for the discovery.
             </p>
             <div className="hero__actions">
-              <a className="btn btn--solid" href="#reserve">
-                Reserve a route
+              <a className="btn btn--solid" href="#perks">
+                Discover what’s inside ↓
               </a>
-              <a className="btn btn--outline" href="#packages">
-                See packages
+              <a className="btn btn--outline" href="#map">
+                Explore neighborhoods
               </a>
             </div>
             <p className="hero__fine">
-              from <strong>10¢ a door</strong> · USPS first-class · QR tracking
-              built in
+              Shared mailing. Local businesses. <strong>From 10¢ a door.</strong>
             </p>
           </div>
 
           <div className="hero__stage">
+            <span className="hero__edition">A neighborhood in every fold.</span>
             <div className="hero__card-wrap">
+              <div className="hero__front">
               <img
                 className="hero__card"
                 src="/hln-card-zfold.jpg"
-                alt="Houston Local Network z-fold mailer card with mascots, gift card hunt, and community spotlight"
+                alt="Front cover of the Houston Local Network mailer, featuring the Neighborhood Hunt and four local business mascots"
+                fetchPriority="high"
+                width="1600"
+                height="1043"
               />
+              </div>
               <span className="hero__tape hero__tape--tl" aria-hidden="true" />
               <span className="hero__tape hero__tape--tr" aria-hidden="true" />
               <HeroStamp />
             </div>
             <p className="hero__scribble" aria-hidden="true">
-              the real thing, not a mockup
+              A little peek. A lot more inside.
             </p>
           </div>
         </div>
@@ -323,7 +329,7 @@ function HeroStamp() {
     <div className="hero-stamp">
       <img
         src="/hln-logo-3d-mark.png"
-        alt="Houston Local Network certified routes stamp"
+        alt=""
       />
     </div>
   );

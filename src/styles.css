@@ -509,6 +509,37 @@ a {
   color: var(--orange);
 }
 
+/* The opening introduces the folded cover; the full reveal comes later. */
+.hero__inner { padding-block: clamp(3rem, 5vw, 4.5rem) clamp(4rem, 6vw, 5rem); }
+.hero__kicker { font-size: 0.65rem; letter-spacing: 0.12em; }
+.hero__title { font-size: clamp(4rem, 7.5vw, 6.2rem); line-height: 1.05; }
+.hero__mark { color: var(--ink); }
+.hero__sub { max-width: 31rem; font-size: clamp(1rem, 1.5vw, 1.14rem); }
+.hero__strip { top: 54%; opacity: 0.3; }
+.hero__fine { line-height: 1.8; letter-spacing: 0.06em; }
+.hero__fine strong { color: var(--ink); white-space: nowrap; }
+.hero__stage { width: 100%; padding-block: 2rem 1rem; }
+.hero__edition { display: block; margin: 0 0 1.3rem 1rem; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.13em; }
+.hero__card-wrap { width: min(72%, 19rem); margin-inline: auto; padding: 0; border-width: 2px; background: var(--cream-deep); box-shadow: 8px 9px 0 var(--ink); }
+.hero__card-wrap::before { content: ""; position: absolute; inset: 0 0 0 -0.7rem; background: #ddd2bc; border: 2px solid var(--ink); transform: skewY(-1deg); z-index: -1; }
+.hero__front { position: relative; overflow: hidden; aspect-ratio: 0.477; background: #fff8ee; }
+.hero__front .hero__card { position: absolute; top: 0; right: 0; width: 321%; max-width: none; height: 100%; object-fit: fill; }
+.hero__stage .hero-stamp { width: clamp(5rem, 9vw, 7rem); right: -3rem; top: -1.5rem; }
+.hero__stage .hero__scribble { position: relative; bottom: auto; left: auto; margin: 1.7rem 0 0; text-align: center; }
+@media (max-width: 980px) {
+  .hero__inner { gap: 1.6rem; }
+  .hero__stage { max-width: 29rem; }
+  .hero__title { font-size: clamp(4rem, 11vw, 6rem); }
+}
+@media (max-width: 640px) {
+  .hero__inner { width: calc(100% - 2.4rem); padding-top: 2.5rem; }
+  .hero__kicker { font-size: 0.58rem; letter-spacing: 0.04em; padding-inline: 0.65rem; }
+  .hero__actions { gap: 0.9rem; }
+  .hero__actions .btn { width: 100%; font-size: 1rem; }
+  .hero__stage .hero-stamp { right: -1.7rem; }
+  .hero__edition { margin-left: 0; text-align: center; font-size: 0.6rem; }
+}
+
 /* ---------- ticker ---------- */
 
 .ticker {
