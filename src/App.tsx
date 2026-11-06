@@ -367,7 +367,7 @@ function Ticker() {
 const NEIGHBOR_DISCOVERIES = [
   {
     id: "events", num: "01", label: "Something to do.",
-    text: "Discover local events and make a plan close to home.",
+    text: "Discover local events and plan something fun for the family, close to home.",
     headline: "Good plans start close to home.",
     note: "Community happenings give neighbors a reason to check the mailer again.",
     image: "/hln-card-zfold.jpg", crop: "565 510 520 390",
