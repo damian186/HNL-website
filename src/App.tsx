@@ -11,6 +11,23 @@ import {
 import { PROOF_PACKAGES, type ProofPackage } from "./proofPackages";
 import { RouteMapSection } from "./RouteMap";
 
+function RouteInquiry() {
+  const [summary, setSummary] = React.useState('');
+  const [copied, setCopied] = React.useState(false);
+  React.useEffect(() => {
+    const receive = (event: Event) => {
+      const detail = (event as CustomEvent<unknown>).detail;
+      if (typeof detail === 'string') { setSummary(detail); setCopied(false); }
+    };
+    window.addEventListener('hln-route-selection', receive);
+    return () => window.removeEventListener('hln-route-selection', receive);
+  }, []);
+  if (!summary) return null;
+  return <div className="planner-inquiry"><label htmlFor="route-inquiry-summary">Your selected route plan</label><textarea id="route-inquiry-summary" readOnly value={summary} /><button onClick={async () => {
+    try { await navigator.clipboard.writeText(summary); setCopied(true); } catch { setCopied(false); }
+  }}>{copied ? 'Copied' : 'Copy route plan'}</button><p>Keep this plan for your conversation with HLN. Selecting routes does not reserve space or submit an order.</p></div>;
+}
+
 const CALENDLY_EMBED_URL = "https://calendly.com/keith-smartcadence/30min?hide_event_type_details=1&hide_gdpr_banner=1&background_color=000000&text_color=fbebd0&primary_color=f7955c";
 const CALENDLY_SCRIPT_ID = "calendly-widget-script";
 
@@ -233,6 +250,7 @@ function App() {
         aria-label="Calendly route availability"
       >
         <div className="reserve-panel">
+          <RouteInquiry />
           <p className="reserve-panel__tag">Reservation window — open</p>
           <div className="calendly-section__launch">
             <p className="route-cta-copy">

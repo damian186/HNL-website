@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { normalizeRoutes, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, routeSelectionText } from '../src/route-planner.ts';
+import handler from '../api/routes.mjs';
+const data = JSON.parse(readFileSync(new URL('../public/route-data/77357.json', import.meta.url)));
+const routes = normalizeRoutes(data);
+assert.equal(routes.length, 19);
+assert(routes.every(r => r.paths.every(p => p.every(([lat, lng]) => lat > 29 && lat < 31 && lng < -94 && lng > -97))));
+const selection = routes.filter(r => ['77357R001', '77357R005'].includes(r.id));
+assert.equal(totalDeliveries(selection, false), 1510);
+assert.equal(totalDeliveries(selection, true), 1529);
+assert(routeSelectionText(selection, true, 3, ['77357R001']).includes('$458.70'));
+assert(routeSelectionText(selection, true, 3, ['77357R001']).includes('Flagged for cluster-mailbox review: 77357R001'));
+assert.throws(() => normalizeRoutes({results:[{paramName:'Output_Feature_Class',value:{spatialReference:{wkid:3857},features:[]}}]}));
+assert.throws(() => normalizeRoutes({results:[{paramName:'Output_Feature_Class',value:{spatialReference:{wkid:4326},features:[],exceededTransferLimit:true}}]}));
+const polygon = [[0,0],[0,2],[2,2],[2,0]];
+assert(routeTouchesPolygon([[[1,-1],[1,3]]],polygon)); // Crosses without a vertex inside.
+assert(!routeTouchesPolygon([[[3,-1],[3,3]]],polygon));
+assert(routeTouchesPolygon([[[0,-1],[0,3]]],polygon)); // Boundary contact.
+assert(routeTouchesRadius([[[30,-95.02],[30,-94.98]]],[30,-95],100));
+assert(!routeTouchesRadius([[[31,-95.02],[31,-94.98]]],[30,-95],100));
+const response = {status(n){this.code=n;return this},json(body){this.body=body;return this}};
+await handler({method:'GET',url:'/api/routes?zip=invalid'},response);assert.equal(response.code,400);
+await handler({method:'POST',url:'/api/routes?zip=77357'},response);assert.equal(response.code,405);
+console.log('Passed: real route normalization, coordinate projection, household totals, exact ad pricing, cluster review, polygon/radius crossings, incomplete data rejection, API validation.');
