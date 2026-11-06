@@ -21,19 +21,22 @@ function MapBridge({ routes, fitKey, mode, points, setPoints, radiusCenter, setR
 }) {
   const map = useMap();
   useEffect(() => {
-    const observer = new ResizeObserver(() => map.invalidateSize());
-    observer.observe(map.getContainer());
-    return () => observer.disconnect();
-  }, [map]);
-  useEffect(() => { map.invalidateSize(); }, [map, fullscreen]);
-  useEffect(() => {
     const coordinates = routes.flatMap(r => r.paths.flat());
-    const frame = requestAnimationFrame(() => {
-      map.invalidateSize();
-      if (coordinates.length) map.fitBounds(L.latLngBounds(coordinates), { padding: [30, 60], maxZoom: 14 });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [map, fitKey, routes]);
+    let frame = 0;
+    const fit = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false });
+        if (coordinates.length && map.getContainer().clientWidth > 0) {
+          map.fitBounds(L.latLngBounds(coordinates), { padding: [30, 60], maxZoom: 14, animate: false });
+        }
+      });
+    };
+    const observer = new ResizeObserver(fit);
+    observer.observe(map.getContainer());
+    fit();
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [map, fitKey, routes, fullscreen]);
   useMapEvents({ click(e) {
     if (mode === 'draw') setPoints(p => [...p, [e.latlng.lat, e.latlng.lng]]);
     if (mode === 'radius') setRadiusCenter([e.latlng.lat, e.latlng.lng]);
@@ -53,6 +56,7 @@ export function RouteMapSection() {
   const [query, setQuery] = useState('77357');
   const [filter, setFilter] = useState('');
   const [loaded, setLoaded] = useState<string[]>([]);
+  const [activeZip, setActiveZip] = useState('77357');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -95,7 +99,9 @@ export function RouteMapSection() {
       const incoming = normalizeRoutes(data);
       if (!incoming.length) throw new Error(`No carrier routes were returned for ${zip}. Try a nearby ZIP code.`);
       setRoutes(current => [...current.filter(r => r.zip !== zip), ...incoming].sort((a, b) => a.id.localeCompare(b.id)));
-      setLoaded(current => [...new Set([...current, zip])]); setFitKey(n => n + 1);
+      setLoaded(current => [...new Set([...current, zip])]);
+      setActiveZip(zip); setFilter(''); setIncomeMin(0); setShowSelected(false); setPoints([]); setMode('click'); setView(v => v === 'Table' ? 'Map' : v);
+      setFitKey(n => n + 1);
       setNotice(`${incoming.length} USPS routes loaded for ${zip}.`);
     } catch (e) {
       if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load routes.');
@@ -107,6 +113,8 @@ export function RouteMapSection() {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (saved?.version === 1 && Array.isArray(saved.routes) && saved.routes.length < 2000 && saved.routes.every((r: PostalRoute) => /^77\d{3}[CRH]\d{3}$/.test(r.id) && Array.isArray(r.paths) && r.paths.length > 0 && Number.isFinite(r.residential) && Number.isFinite(r.business))) {
         setRoutes(saved.routes); setLoaded([...new Set(saved.routes.map((r: PostalRoute) => r.zip))] as string[]);
+        const restoredZip = saved.routes.some((r: PostalRoute) => r.zip === saved.activeZip) ? saved.activeZip : saved.routes[0]?.zip || '77357';
+        setActiveZip(restoredZip); setQuery(restoredZip);
         setHistory({ past: [], current: Array.isArray(saved.selected) ? saved.selected.filter((id: string) => saved.routes.some((r: PostalRoute) => r.id === id)) : [], future: [] });
         setIncludeBusiness(Boolean(saved.includeBusiness));
         setSizeIndex(Number.isInteger(saved.sizeIndex) && saved.sizeIndex >= 0 && saved.sizeIndex < AD_SIZES.length ? saved.sizeIndex : 0);
@@ -120,9 +128,9 @@ export function RouteMapSection() {
 
   useEffect(() => {
     if (!hydrated || !routes.length) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, routes, selected: history.current, includeBusiness, sizeIndex, flags })); }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, routes, activeZip, selected: history.current, includeBusiness, sizeIndex, flags })); }
     catch { /* The planner still works when browser storage is unavailable. */ }
-  }, [hydrated, routes, history.current, includeBusiness, sizeIndex, flags]);
+  }, [hydrated, routes, activeZip, history.current, includeBusiness, sizeIndex, flags]);
   useEffect(() => {
     if (!fullscreen) return;
     const previous = document.body.style.overflow; document.body.style.overflow = 'hidden';
@@ -132,7 +140,8 @@ export function RouteMapSection() {
   }, [fullscreen]);
 
   const selected = useMemo(() => routes.filter(r => history.current.includes(r.id)), [routes, history.current]);
-  const visible = useMemo(() => routes.filter(r => (!filter || `${r.id} ${r.city}`.toLowerCase().includes(filter.toLowerCase())) && (!incomeMin || (r.income !== null && r.income >= incomeMin)) && (!showSelected || history.current.includes(r.id))), [routes, filter, incomeMin, showSelected, history.current]);
+  const areaRoutes = useMemo(() => routes.filter(r => r.zip === activeZip), [routes, activeZip]);
+  const visible = useMemo(() => areaRoutes.filter(r => (!filter || `${r.id} ${r.city}`.toLowerCase().includes(filter.toLowerCase())) && (!incomeMin || (r.income !== null && r.income >= incomeMin)) && (!showSelected || history.current.includes(r.id))), [areaRoutes, filter, incomeMin, showSelected, history.current]);
   const doors = totalDeliveries(selected, includeBusiness);
   const residential = selected.reduce((n, r) => n + r.residential, 0);
   const businesses = selected.reduce((n, r) => n + r.business, 0);
@@ -171,9 +180,9 @@ export function RouteMapSection() {
       <div className="planner-body">
         <aside className="planner-tools" aria-label="Route selection tools">
           <form className="planner-search" onSubmit={search}><label htmlFor="planner-zip">Find your neighborhood</label><div><input id="planner-zip" list="planner-places" value={query} onChange={e => setQuery(e.target.value)} placeholder="City or ZIP code" autoComplete="off" /><button disabled={loading} aria-label="Search ZIP code">{loading ? '…' : '→'}</button></div><datalist id="planner-places">{places.map(p => <option key={p.zip} value={p.zip}>{p.name}</option>)}</datalist></form>
-          <div className="planner-loaded"><span>LOADED ZIPS</span><div>{loaded.map(zip => <button key={zip} onClick={() => { setQuery(zip); setFilter(zip); setFitKey(n => n + 1); }}>{zip}</button>)}</div></div>
+          <div className="planner-loaded"><span>LOADED ZIPS</span><div>{loaded.map(zip => <button key={zip} onClick={() => { setQuery(zip); setActiveZip(zip); setView(v => v === 'Table' ? 'Map' : v); setFilter(''); setIncomeMin(0); setShowSelected(false); setPoints([]); setFitKey(n => n + 1); }}>{zip}</button>)}</div></div>
           <p className="planner-tool-label">Route selection</p>
-          <button className={`planner-tool ${mode === 'click' ? 'is-active' : ''}`} onClick={() => { setMode('click'); setPoints([]); }}><span>↖</span> Point & click</button>
+          <button className={`planner-tool ${mode === 'click' ? 'is-active' : ''}`} onClick={() => { setMode('click'); setPoints([]); }}><span>☷</span> Choose from route list</button>
           <button className={`planner-tool ${mode === 'draw' ? 'is-active' : ''}`} onClick={() => { setMode('draw'); setPoints([]); setView(v => v === 'Table' ? 'Map' : v); }}><span>◇</span> Draw an area</button>
           <button className={`planner-tool ${mode === 'radius' ? 'is-active' : ''}`} onClick={() => { setMode('radius'); setPoints([]); setView(v => v === 'Table' ? 'Map' : v); }}><span>◎</span> Radius selection</button>
           {mode !== 'click' && <div className="planner-draw-panel"><p>{mode === 'draw' ? 'Click at least 3 points on the map to outline an area.' : 'Click the map to set the center.'}</p>{mode === 'radius' && <label>Radius: {radiusMiles} miles<input type="range" min="0.5" max="10" step="0.5" value={radiusMiles} onChange={e => setRadiusMiles(Number(e.target.value))} /></label>}<button className="planner-small-cta" disabled={mode === 'draw' ? points.length < 3 : !radiusCenter} onClick={selectShape}>Select intersecting routes</button><small>Only loaded routes are included. Entire routes are selected.</small></div>}
@@ -181,7 +190,7 @@ export function RouteMapSection() {
           <p className="planner-tool-label">Neighborhood insights</p>
           <button className={`planner-tool ${heatmap ? 'is-active' : ''}`} onClick={() => setHeatmap(h => !h)} aria-pressed={heatmap}><span>◒</span> Income overlay</button>
           <label className="planner-filter-label" htmlFor="planner-income">Minimum median household income<select id="planner-income" value={incomeMin} onChange={e => setIncomeMin(Number(e.target.value))}><option value="0">Any income</option><option value="50000">$50,000+</option><option value="75000">$75,000+</option><option value="100000">$100,000+</option><option value="125000">$125,000+</option></select></label>
-          <button className="planner-tool" onClick={() => { setFitKey(n => n + 1); setFilter(''); setIncomeMin(0); setShowSelected(false); }}><span>⌖</span> Fit loaded routes</button>
+          <button className="planner-tool" onClick={() => { setFitKey(n => n + 1); setFilter(''); setIncomeMin(0); setShowSelected(false); }}><span>⌖</span> Fit ZIP routes</button>
           <button className="planner-clear" disabled={!selected.length} onClick={() => changeSelection([])}>× Clear selection</button>
           <div className="planner-source"><span className="planner-source-dot" /><strong>USPS route data</strong><p>Retrieved {dataDate ? new Date(dataDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}. Delivery counts are estimates; confirm before mailing.</p></div>
         </aside>
@@ -192,11 +201,11 @@ export function RouteMapSection() {
               {view === 'Map' && <TileLayer key="streets" url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' />}
               {(view === 'Satellite' || view === 'Hybrid') && <TileLayer key="satellite" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Imagery &copy; Esri, Vantor, Earthstar Geographics, GIS User Community" />}
               {view === 'Hybrid' && <TileLayer key="labels" url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}" attribution="Labels &copy; Esri" />}
-              <MapBridge routes={routes} fitKey={fitKey} mode={mode} points={points} setPoints={setPoints} radiusCenter={radiusCenter} setRadiusCenter={setRadiusCenter} radiusMiles={radiusMiles} fullscreen={fullscreen} />
+              <MapBridge routes={areaRoutes} fitKey={fitKey} mode={mode} points={points} setPoints={setPoints} radiusCenter={radiusCenter} setRadiusCenter={setRadiusCenter} radiusMiles={radiusMiles} fullscreen={fullscreen} />
               {visible.map(r => {
                 const checked = history.current.includes(r.id);
                 const color = checked ? '#e5672c' : heatmap ? (r.income === null ? '#808780' : r.income >= 100000 ? '#165345' : r.income >= 75000 ? '#4e8a6d' : '#b1935b') : '#425e55';
-                return <Polyline key={r.id} positions={r.paths} pathOptions={{ color, weight: checked ? 6 : 3.5, opacity: checked ? 1 : 0.8, interactive: mode === 'click', bubblingMouseEvents: false }} eventHandlers={{ click: () => { if (mode === 'click') toggleRoute(r.id); } }}><Tooltip sticky><div className="planner-tooltip"><strong>{r.id}</strong><span>{r.city}</span><b>{number(r.residential)} residential · {number(r.business)} business</b><span>Median household income: {r.income ? money(r.income) : 'Unavailable'}</span><small>Housing type unverified · click to {checked ? 'remove' : 'select'}</small></div></Tooltip></Polyline>;
+                return <Polyline key={r.id} positions={r.paths} pathOptions={{ color, weight: checked ? 6 : 2.5, opacity: checked ? 1 : 0.5, interactive: mode === 'click', bubblingMouseEvents: false }} eventHandlers={{ click: () => { if (mode === 'click') toggleRoute(r.id); } }}><Tooltip sticky><div className="planner-tooltip"><strong>{r.id}</strong><span>{r.city}</span><b>{number(r.residential)} residential · {number(r.business)} business</b><span>Median household income: {r.income ? money(r.income) : 'Unavailable'}</span><small>Housing type unverified · click to {checked ? 'remove' : 'select'}</small></div></Tooltip></Polyline>;
               })}
             </MapContainer>
           </div>
@@ -207,6 +216,22 @@ export function RouteMapSection() {
           {error && <div className="planner-alert" role="alert">{error}</div>}
         </div>
         <aside className="planner-summary" aria-label="Selection summary">
+          <div className="planner-route-picker">
+            <div className="planner-route-picker-heading"><div><span>CHOOSE YOUR ROUTES</span><h3>ZIP {activeZip}</h3></div><b>{visible.length} routes</b></div>
+            <p>Click a route below to highlight it on the map.</p>
+            <div className="planner-route-list" role="group" aria-label={`Routes in ZIP ${activeZip}`}>
+              {visible.map(r => {
+                const checked = history.current.includes(r.id);
+                return <label key={r.id} className={`planner-route-option ${checked ? 'is-selected' : ''}`}>
+                  <input type="checkbox" aria-label={`Choose route ${r.id}`} checked={checked} onChange={() => toggleRoute(r.id)} />
+                  <span><strong>{r.id}</strong><small>{number(r.residential)} residential · {number(r.business)} business</small></span>
+                  <b className="planner-route-option-count">{number(r.residential + (includeBusiness ? r.business : 0))}<small>doors</small></b>
+                </label>;
+              })}
+              {!visible.length && <p className="planner-route-list-empty">{loading ? 'Loading routes…' : 'No routes match your filters.'}</p>}
+            </div>
+            <small className="planner-route-picker-note">Orange routes are selected. Your total includes selections from all loaded ZIP codes.</small>
+          </div>
           <p className="planner-tool-label">Your selection</p><div className="planner-count"><strong>{number(doors)}</strong><span>estimated deliveries</span></div>
           <div className="planner-summary-line"><span>Routes selected</span><strong>{selected.length}</strong></div><div className="planner-summary-line"><span>Residential</span><strong>{number(residential)}</strong></div><div className="planner-summary-line"><span>Business {includeBusiness ? 'included' : 'excluded'}</span><strong>{number(businesses)}</strong></div>
           <div className="planner-housing"><div><span>Single-family homes</span><strong>Not verified</strong></div><div><span>Apartments</span><strong>Not verified</strong></div></div>
@@ -216,7 +241,7 @@ export function RouteMapSection() {
           <button className="planner-continue" disabled={!selected.length} onClick={useSelection}>Use these routes <span>→</span></button><button className="planner-export" disabled={!selected.length} onClick={exportSelection}>↓ Export selection CSV</button><small className="planner-saved">Your plan is saved in this browser when storage is available.</small>
         </aside>
       </div>
-      <footer className="planner-footer"><div className="planner-route-filter"><input aria-label="Filter loaded routes" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter loaded routes or city…" /><label><input type="checkbox" checked={showSelected} onChange={e => setShowSelected(e.target.checked)} /> Selected only</label></div><p role="status" aria-live="polite">{notice || 'Click a route on the map or use Table view to select.'}</p></footer>
+      <footer className="planner-footer"><div className="planner-route-filter"><input aria-label="Filter loaded routes" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter loaded routes or city…" /><label><input type="checkbox" checked={showSelected} onChange={e => setShowSelected(e.target.checked)} /> Selected only</label></div><p role="status" aria-live="polite">{notice || 'Click a route from the list on the right to highlight it on the map.'}</p></footer>
     </div>
     <p className="planner-fineprint">Route lines and residential/business counts: <a href="https://eddm.usps.com/eddm/select-routes.htm" target="_blank" rel="noreferrer">USPS EDDM</a>. These are delivery paths, not property boundaries. Area tools select whole loaded routes; they do not remove individual addresses. Housing classifications need a separate verified source.</p>
   </section>;
