@@ -242,13 +242,13 @@ function App() {
 
       <PerksSection />
 
-      <ProofPackageRows />
-
-      <HowItWorks />
+      <BusinessBenefitsSection />
 
       <RouteMapSection />
 
       <RouteBoard />
+
+      <ProofPackageRows />
 
       <section
         className="section calendly-section"
@@ -694,49 +694,46 @@ function ProofAnimatedCell({
   );
 }
 
-const HOW_STEPS = [
-  {
-    num: "1",
-    title: "Mail",
-    text: "One shared card lands in up to 5,000 mailboxes on your route.",
-  },
-  {
-    num: "2",
-    title: "Scan",
-    text: "Your square carries its own QR code. Every scan is yours.",
-  },
-  {
-    num: "3",
-    title: "Track",
-    text: "Scans, timing, and route response feed straight to your report.",
-  },
+const RESPONSE_ACTIONS = [
+  { id: "scan", label: "QR scans", title: "From the card to your page.", text: "A scan opens your dedicated business page. Scan activity shows how often readers take that first step.", signal: "Business page opened", limit: "Scan activity is not a count of unique customers." },
+  { id: "call", label: "Call-button clicks", title: "A tap toward a conversation.", text: "Readers can tap to call from your business page. Call-button clicks help show interest in contacting you.", signal: "Call button tapped", limit: "A tap does not confirm a connected call or a sale." },
+  { id: "website", label: "Website clicks", title: "Keep the discovery going.", text: "A website button takes readers to your site to explore your services, see your work, or learn more.", signal: "Website button tapped", limit: "A website click does not confirm an inquiry or purchase." },
 ];
 
-function HowItWorks() {
+function BusinessBenefitsSection() {
+  const [selected, setSelected] = React.useState(0);
+  const action = RESPONSE_ACTIONS[selected];
   return (
-    <section className="section howto" aria-label="How the mailer works">
-      <Reveal className="howto__head">
-        <p className="eyebrow">How it works</p>
-        <h2>
-          Mail, scan, <span className="script">track.</span>
-        </h2>
-      </Reveal>
-      <div className="howto__row">
-        {HOW_STEPS.map((step, index) => (
-          <motion.article
-            key={step.num}
-            className={index === 2 ? "ticket ticket--accent" : "ticket"}
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            style={{ opacity: 0, y: 22 }}
-            transition={{ duration: 0.55, delay: index * 0.09, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="ticket__num">{step.num}</span>
-            <h3 className="ticket__title">{step.title}</h3>
-            <p className="ticket__text">{step.text}</p>
-          </motion.article>
-        ))}
+    <section className="business-benefits" id="business" aria-labelledby="business-heading">
+      <div className="business-benefits__inner">
+        <div className="business-benefits__head">
+          <p className="eyebrow eyebrow--on-dark">Now, put your business in the story</p>
+          <h2 id="business-heading">Get discovered.<br /><span className="is-orange">Give them a next step.</span></h2>
+          <p>The neighborhood draws them in. Your creative, your offer, and a clear way to respond give them somewhere to go next.</p>
+        </div>
+        <div className="business-benefits__grid">
+          <div className="business-benefits__reasons">
+            <article><span className="business-benefits__number">01</span><div><h3>Look like your business.</h3><p>Creative built around your brand, your services, and your offer. Give neighbors a clear reason to choose you.</p></div></article>
+            <article><span className="business-benefits__number">02</span><div><h3>Be part of the discovery.</h3><p>Your ad sits alongside local offers, community happenings, and the hunt — giving readers more reasons to explore the piece.</p></div></article>
+            <article><span className="business-benefits__number">03</span><div><h3>Make the next step easy.</h3><p>A dedicated business page connects the printed ad to your story, a call, or a visit to your website.</p></div></article>
+            <a className="business-benefits__map-link" href="#map">Choose your neighborhoods <span aria-hidden="true">→</span></a>
+          </div>
+          <div className="response-preview">
+            <div className="response-preview__heading"><span>Tracking preview</span><span aria-hidden="true">HLN / RESPONSE</span></div>
+            <h3>See what happens<br /><span>after the mailbox.</span></h3>
+            <p className="response-preview__intro">Explore the actions a campaign can measure.</p>
+            <div className="response-preview__journey" aria-label="Response journey"><span>Your ad</span><span aria-hidden="true">→</span><span>Your business page</span><span aria-hidden="true">→</span><span>A next step</span></div>
+            <div className="response-preview__actions" aria-label="Preview a response metric">
+              {RESPONSE_ACTIONS.map((item, index) => <button type="button" key={item.id} aria-pressed={selected === index} aria-controls="response-explanation" onClick={() => setSelected(index)}><span className="response-preview__action-num" aria-hidden="true">0{index + 1}</span>{item.label}</button>)}
+            </div>
+            <div className="response-preview__detail" id="response-explanation" aria-live="polite" aria-atomic="true">
+              <span className="response-preview__signal"><span aria-hidden="true" />{action.signal}</span>
+              <h4>{action.title}</h4><p>{action.text}</p><p className="response-preview__limit">{action.limit}</p>
+            </div>
+            <p className="response-preview__availability">Advertiser reporting is coming soon. Confirm tracking availability with HLN before booking.</p>
+          </div>
+        </div>
+        <div className="business-benefits__close"><span>Built to be discovered.</span><span className="script">Designed for a next step.</span></div>
       </div>
     </section>
   );
