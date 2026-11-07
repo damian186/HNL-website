@@ -11,7 +11,10 @@ export const AD_SIZES = [
   { label: '1/6 panel', rate: 0.10 }, { label: '1/4 panel', rate: 0.15 },
   { label: '1/3 panel', rate: 0.20 }, { label: '1/2 panel', rate: 0.30 },
   { label: 'Full panel', rate: 0.60 },
+  { label: '2/3 panel', rate: 0.40 },
 ];
+// Keep stored size indexes stable; display choices in price order.
+export const AD_SIZE_ORDER = AD_SIZES.map((_, index) => index).sort((a, b) => AD_SIZES[a].rate - AD_SIZES[b].rate);
 export type PostalResponse = { fetchedAt?: string; error?: string; results?: { paramName: string; value: {
   spatialReference?: { wkid: number }; exceededTransferLimit?: boolean;
   features: { attributes: Record<string, unknown>; geometry?: { paths?: number[][][] } }[];

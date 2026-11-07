@@ -40,7 +40,8 @@
 .zfold-options__explain { margin-top: .8rem; font-size: .88rem; line-height: 1.6; }
 .zfold-sizes { margin-top: 1.2rem; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem; }
 .zfold-sizes button { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem .65rem; background: #fffdf7; color: var(--ink); border: 1px solid #99917f; cursor: pointer; text-align: left; }
-.zfold-sizes button:last-child { grid-column: 1/-1; }
+.zfold-space--remainder { background: #e9e5d9; border-style: dashed; }
+.zfold-space--remainder strong { color: #6b6252; }
 .zfold-sizes button[aria-pressed=true] { background: var(--orange); border: 2px solid var(--ink); padding: calc(.8rem - 1px) calc(.65rem - 1px); box-shadow: 3px 3px 0 var(--ink); }
 .zfold-sizes button > span { font: .75rem var(--font-body); font-weight: 600; }
 .zfold-sizes button strong { font: 1.2rem var(--font-display); white-space: nowrap; }

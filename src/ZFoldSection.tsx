@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { AD_SIZES, MINIMUM_HOMES, meetsHomeMinimum } from './route-planner';
+import { AD_SIZES, AD_SIZE_ORDER, MINIMUM_HOMES, meetsHomeMinimum } from './route-planner';
 import { chooseMailerSize, useMailerPlan } from './mailer-plan';
 import './zfold.css';
 
@@ -10,6 +10,7 @@ const LAYOUTS = [
   { cols: 1, rows: 3, fraction: '1/3', name: 'A wide space for your story.' },
   { cols: 1, rows: 2, fraction: '1/2', name: 'Give your business more room.' },
   { cols: 1, rows: 1, fraction: 'Full', name: 'Make the whole panel yours.' },
+  { cols: 1, rows: 3, fraction: '2/3', name: 'A bigger space. A stronger presence.' },
 ];
 const currency = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
@@ -31,7 +32,8 @@ export function ZFoldSection() {
   const size = AD_SIZES[plan.sizeIndex];
   const minimumMet = meetsHomeMinimum(plan.residential);
   const remainingHomes = Math.max(0, MINIMUM_HOMES - plan.residential);
-  const slots = layout.cols * layout.rows;
+  const isTwoThirds = size.label === '2/3 panel';
+  const slots = isTwoThirds ? 2 : layout.cols * layout.rows;
   const chooseSize = (index: number) => {
     setPlacement({ panel: 1, slot: 0 }); setManual('open'); chooseMailerSize(index);
   };
@@ -40,9 +42,13 @@ export function ZFoldSection() {
     <div className="zfold-panel__label"><span>0{panel + 1}</span><span>Inside panel</span></div>
     <div className="zfold-panel__slots" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, 1fr)` }}>
       {Array.from({ length: slots }, (_, slot) => {
-        const chosen = panel === placement.panel && slot === Math.min(placement.slot, slots - 1);
-        return <button key={slot} type="button" className={`zfold-space${chosen ? ' is-chosen' : ''}`} disabled={!open} aria-label={`Preview ${size.label} in panel ${panel + 1}, space ${slot + 1}`} aria-pressed={chosen} onClick={() => setPlacement({ panel, slot })}>
-          {chosen ? <><strong>{layout.fraction}</strong><span>Your business here</span></> : <span className="zfold-space__cross" aria-hidden="true">+</span>}
+        const remainder = isTwoThirds && slot === 1;
+        const chosen = !remainder && panel === placement.panel && slot === (isTwoThirds ? 0 : Math.min(placement.slot, slots - 1));
+        return <button key={slot} type="button" className={`zfold-space${chosen ? ' is-chosen' : ''}${remainder ? ' zfold-space--remainder' : ''}`} style={isTwoThirds && !remainder ? { gridRow: 'span 2' } : undefined} disabled={!open} aria-label={remainder ? `Choose remaining 1/3 panel in panel ${panel + 1}` : `Preview ${size.label} in panel ${panel + 1}, space ${slot + 1}`} aria-pressed={chosen} onClick={() => {
+          if (remainder) { chooseMailerSize(2); setPlacement({ panel, slot: 2 }); }
+          else setPlacement({ panel, slot });
+        }}>
+          {chosen ? <><strong>{layout.fraction}</strong><span>Your business here</span></> : remainder ? <><strong>1/3</strong><span>Remaining space</span></> : <span className="zfold-space__cross" aria-hidden="true">+</span>}
         </button>;
       })}
     </div>
@@ -80,9 +86,9 @@ export function ZFoldSection() {
         <div className="zfold-options">
           <p className="zfold-options__step">Choose your ad space</p>
           <h3>{layout.name}</h3>
-          <p className="zfold-options__explain">Each size is a fraction of <strong>one inside panel.</strong> Compare the shapes, then pick your fit.</p>
+          <p className="zfold-options__explain">Each size is a fraction of <strong>one inside panel.</strong> {isTwoThirds ? 'A 2/3 ad pairs with a 1/3 ad to fill the panel.' : 'Compare the shapes, then pick your fit.'}</p>
           <div className="zfold-sizes" role="group" aria-label="Choose an ad size">
-            {AD_SIZES.map((item, index) => <button key={item.label} type="button" aria-pressed={plan.sizeIndex === index} onClick={() => chooseSize(index)}><span>{item.label}</span><strong>{Math.round(item.rate * 100)}¢<small>/door</small></strong></button>)}
+            {AD_SIZE_ORDER.map((index) => { const item = AD_SIZES[index]; return <button key={item.label} type="button" aria-pressed={plan.sizeIndex === index} onClick={() => chooseSize(index)}><span>{item.label}</span><strong>{Math.round(item.rate * 100)}¢<small>/door</small></strong></button>; })}
           </div>
           <div className="zfold-estimate" aria-live="polite" aria-atomic="true">
             <span>{plan.doors ? 'Your selected route plan' : '1,000-home minimum · example mailing'}</span>
@@ -90,7 +96,7 @@ export function ZFoldSection() {
             <p>{(plan.doors || MINIMUM_HOMES).toLocaleString('en-US')} deliveries × {currency(size.rate)} per door</p>
             <small>{minimumMet ? '1,000-home minimum met. Updates with your route selection and ad size.' : plan.doors ? `Below minimum. Add routes with at least ${remainingHomes.toLocaleString('en-US')} more homes.` : 'Select routes totaling at least 1,000 homes for your own estimate.'}</small>
           </div>
-          <p className="zfold-options__placement">Preview: panel {placement.panel + 1} · space {Math.min(placement.slot + 1, slots)} of {slots}</p>
+          <p className="zfold-options__placement">Preview: panel {placement.panel + 1} · {isTwoThirds ? '2/3 ad + 1/3 remaining' : `space ${Math.min(placement.slot + 1, slots)} of ${slots}`}</p>
           <a className="btn btn--solid zfold-options__cta" href={minimumMet ? '#reserve' : '#map'} onClick={() => { if (minimumMet) window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: plan.summary })); }}>{minimumMet ? 'Review this mailer plan' : plan.doors ? `Add ${remainingHomes.toLocaleString('en-US')} more homes` : 'Choose at least 1,000 homes'}</a>
           <p className="zfold-options__fine">Estimates only. Distribution, availability, and final artwork confirmed before booking.</p>
         </div>

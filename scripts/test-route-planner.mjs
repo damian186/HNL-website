@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MINIMUM_HOMES, meetsHomeMinimum, normalizeRoutes, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, routeSelectionText } from '../src/route-planner.ts';
+import { MINIMUM_HOMES, AD_SIZES, AD_SIZE_ORDER, meetsHomeMinimum, normalizeRoutes, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, routeSelectionText } from '../src/route-planner.ts';
 import handler from '../api/routes.mjs';
 assert.equal(MINIMUM_HOMES, 1000);
+assert.equal(AD_SIZES[4].label, 'Full panel'); // Previously saved plans retain their size.
+assert.equal(AD_SIZES[5].label, '2/3 panel');
+assert.equal(AD_SIZES[5].rate * 1000, 400);
+assert.deepEqual(AD_SIZE_ORDER.map(i => AD_SIZES[i].label), ['1/6 panel', '1/4 panel', '1/3 panel', '1/2 panel', '2/3 panel', 'Full panel']);
 assert.equal(meetsHomeMinimum(0), false);
 assert.equal(meetsHomeMinimum(999), false);
 assert.equal(meetsHomeMinimum(1000), true);
@@ -17,6 +21,8 @@ assert(routes.every(r => r.paths.every(p => p.every(([lat, lng]) => lat > 29 && 
 const selection = routes.filter(r => ['77357R001', '77357R005'].includes(r.id));
 assert.equal(totalDeliveries(selection, false), 1510);
 assert.equal(totalDeliveries(selection, true), 1529);
+assert(routeSelectionText(selection, true, 5, []).includes('2/3 panel at $0.40/door'));
+assert(routeSelectionText(selection, true, 5, []).includes('$611.60'));
 assert(routeSelectionText(selection, true, 3, ['77357R001']).includes('$458.70'));
 assert(routeSelectionText(selection, true, 3, ['77357R001']).includes('Flagged for cluster-mailbox review: 77357R001'));
 assert.throws(() => normalizeRoutes({results:[{paramName:'Output_Feature_Class',value:{spatialReference:{wkid:3857},features:[]}}]}));
