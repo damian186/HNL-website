@@ -1,9 +1,9 @@
 export type ProofPackage = {
   homes: string;
-  rate: "$0.10";
+  rate: string;
   spend: string;
-  qr: "QR";
-  qrLabel: "Tracking included" | "included";
+  qr: string;
+  qrLabel: string;
   entrance: "left" | "right";
 };
 

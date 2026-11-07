@@ -10,6 +10,9 @@ import {
 } from "framer-motion";
 import { PROOF_PACKAGES, type ProofPackage } from "./proofPackages";
 import { RouteMapSection } from "./RouteMap";
+import { ZFoldSection } from "./ZFoldSection";
+import { useMailerPlan } from "./mailer-plan";
+import { AD_SIZES } from "./route-planner";
 
 function RouteInquiry() {
   const [summary, setSummary] = React.useState('');
@@ -167,7 +170,7 @@ function App() {
         </a>
         <nav className="topbar__nav" aria-label="Site">
           <a href="#perks">The perks</a>
-          <a href="#packages">Packages</a>
+          <a href="#mailer">Ad sizes</a>
           <a href="#map">Route map</a>
           <a href="#routes">Routes</a>
         </nav>
@@ -247,6 +250,8 @@ function App() {
       <RouteMapSection />
 
       <RouteBoard />
+
+      <ZFoldSection />
 
       <ProofPackageRows />
 
@@ -479,6 +484,9 @@ function PerksSection() {
 }
 
 function ProofPackageRows() {
+  const plan = useMailerPlan();
+  const adSize = AD_SIZES[plan.sizeIndex];
+  const packageRows = PROOF_PACKAGES.map((row) => ({ ...row, rate: `$${adSize.rate.toFixed(2)}`, spend: (Number(row.homes.replace(/,/g, "")) * adSize.rate).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }), qr: adSize.label.replace(" panel", ""), qrLabel: "panel size" }));
   const sectionRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -505,12 +513,12 @@ function ProofPackageRows() {
     >
       <div className="packages-head">
         <Reveal>
-          <p className="eyebrow eyebrow--on-dark">Proof of spend — package totals</p>
+          <p className="eyebrow eyebrow--on-dark">Example budgets · {adSize.label}</p>
           <h2>
             Pick your <span className="is-orange">route size.</span>
           </h2>
           <p className="packages-head__note">
-            same 10¢ everywhere — bigger route, bigger reach
+            {Math.round(adSize.rate * 100)}¢ per door · compare estimated mailing totals
           </p>
         </Reveal>
       </div>
@@ -520,10 +528,10 @@ function ProofPackageRows() {
           aria-hidden="true"
           style={{ opacity: ghostOpacity, x: ghostX }}
         >
-          10¢
+          {Math.round(adSize.rate * 100)}¢
         </motion.div>
         <div className="proof-packages__rows">
-          {PROOF_PACKAGES.map((packageRow, index) => (
+          {packageRows.map((packageRow, index) => (
             <ProofAnimatedRow
               index={index}
               key={`${packageRow.homes}-${packageRow.spend}`}
@@ -587,7 +595,7 @@ function ProofAnimatedRow({
       <ProofAnimatedCell
         cellIndex={0}
         highlight
-        label="verified homes"
+        label="estimated deliveries"
         progress={progress}
         rowStart={start}
         shouldReduceMotion={shouldReduceMotion}

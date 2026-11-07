@@ -3,6 +3,7 @@ import { Circle, MapContainer, Polygon, Polyline, TileLayer, Tooltip, useMap, us
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './route-planner.css';
+import { PLAN_UPDATED, PLAN_REQUESTED, SIZE_CHANGED, validSize } from './mailer-plan';
 import { AD_SIZES, normalizeRoutes, routeSelectionText, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, type PostalResponse, type PostalRoute } from './route-planner';
 
 const number = (n: number) => n.toLocaleString('en-US');
@@ -148,6 +149,21 @@ export function RouteMapSection() {
   const price = Math.round(doors * AD_SIZES[sizeIndex].rate * 100) / 100;
   const dataDate = routes.map(r => r.fetchedAt).filter(Boolean).sort()[0];
   const selectionSummary = routeSelectionText(selected, includeBusiness, sizeIndex, flags.filter(id => history.current.includes(id)));
+
+  useEffect(() => {
+    const publish = () => window.dispatchEvent(new CustomEvent(PLAN_UPDATED, { detail: { doors, sizeIndex, summary: selectionSummary } }));
+    publish();
+    window.addEventListener(PLAN_REQUESTED, publish);
+    return () => window.removeEventListener(PLAN_REQUESTED, publish);
+  }, [doors, sizeIndex, selectionSummary]);
+  useEffect(() => {
+    const receiveSize = (event: Event) => {
+      const index = (event as CustomEvent<unknown>).detail;
+      if (validSize(index)) setSizeIndex(index);
+    };
+    window.addEventListener(SIZE_CHANGED, receiveSize);
+    return () => window.removeEventListener(SIZE_CHANGED, receiveSize);
+  }, []);
 
   function search(e: React.FormEvent) {
     e.preventDefault();
