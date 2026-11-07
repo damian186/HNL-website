@@ -9,9 +9,9 @@ export type ProofPackage = {
 
 export const PROOF_PACKAGES: ProofPackage[] = [
   {
-    homes: "2,500",
+    homes: "1,000",
     rate: "$0.10",
-    spend: "$250",
+    spend: "$100",
     qr: "QR",
     qrLabel: "Tracking included",
     entrance: "left",

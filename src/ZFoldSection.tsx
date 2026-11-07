@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { AD_SIZES } from './route-planner';
+import { AD_SIZES, MINIMUM_HOMES, meetsHomeMinimum } from './route-planner';
 import { chooseMailerSize, useMailerPlan } from './mailer-plan';
 import './zfold.css';
 
@@ -29,6 +29,8 @@ export function ZFoldSection() {
   const rightRotation = reducedMotion || manual === 'open' ? 0 : manual === 'closed' ? -179.5 : rightFold;
   const layout = LAYOUTS[plan.sizeIndex];
   const size = AD_SIZES[plan.sizeIndex];
+  const minimumMet = meetsHomeMinimum(plan.residential);
+  const remainingHomes = Math.max(0, MINIMUM_HOMES - plan.residential);
   const slots = layout.cols * layout.rows;
   const chooseSize = (index: number) => {
     setPlacement({ panel: 1, slot: 0 }); setManual('open'); chooseMailerSize(index);
@@ -83,13 +85,13 @@ export function ZFoldSection() {
             {AD_SIZES.map((item, index) => <button key={item.label} type="button" aria-pressed={plan.sizeIndex === index} onClick={() => chooseSize(index)}><span>{item.label}</span><strong>{Math.round(item.rate * 100)}¢<small>/door</small></strong></button>)}
           </div>
           <div className="zfold-estimate" aria-live="polite" aria-atomic="true">
-            <span>{plan.doors ? 'Your selected route plan' : 'Example mailing · 5,000 deliveries'}</span>
-            <strong>{currency((plan.doors || 5000) * size.rate)}</strong>
-            <p>{(plan.doors || 5000).toLocaleString('en-US')} deliveries × {currency(size.rate)} per door</p>
-            <small>{plan.doors ? 'Updates with your route selection and ad size.' : 'Choose routes on the map for your own estimate.'}</small>
+            <span>{plan.doors ? 'Your selected route plan' : '1,000-home minimum · example mailing'}</span>
+            <strong>{currency((plan.doors || MINIMUM_HOMES) * size.rate)}</strong>
+            <p>{(plan.doors || MINIMUM_HOMES).toLocaleString('en-US')} deliveries × {currency(size.rate)} per door</p>
+            <small>{minimumMet ? '1,000-home minimum met. Updates with your route selection and ad size.' : plan.doors ? `Below minimum. Add routes with at least ${remainingHomes.toLocaleString('en-US')} more homes.` : 'Select routes totaling at least 1,000 homes for your own estimate.'}</small>
           </div>
           <p className="zfold-options__placement">Preview: panel {placement.panel + 1} · space {Math.min(placement.slot + 1, slots)} of {slots}</p>
-          <a className="btn btn--solid zfold-options__cta" href={plan.doors ? '#reserve' : '#map'} onClick={() => { if (plan.doors) window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: plan.summary })); }}>{plan.doors ? 'Review this mailer plan' : 'Choose your neighborhoods'}</a>
+          <a className="btn btn--solid zfold-options__cta" href={minimumMet ? '#reserve' : '#map'} onClick={() => { if (minimumMet) window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: plan.summary })); }}>{minimumMet ? 'Review this mailer plan' : plan.doors ? `Add ${remainingHomes.toLocaleString('en-US')} more homes` : 'Choose at least 1,000 homes'}</a>
           <p className="zfold-options__fine">Estimates only. Distribution, availability, and final artwork confirmed before booking.</p>
         </div>
       </div>

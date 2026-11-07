@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './route-planner.css';
 import { PLAN_UPDATED, PLAN_REQUESTED, SIZE_CHANGED, validSize } from './mailer-plan';
-import { AD_SIZES, normalizeRoutes, routeSelectionText, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, type PostalResponse, type PostalRoute } from './route-planner';
+import { MINIMUM_HOMES, meetsHomeMinimum, AD_SIZES, normalizeRoutes, routeSelectionText, totalDeliveries, routeTouchesPolygon, routeTouchesRadius, type PostalResponse, type PostalRoute } from './route-planner';
 
 const number = (n: number) => n.toLocaleString('en-US');
 const money = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -151,11 +151,11 @@ export function RouteMapSection() {
   const selectionSummary = routeSelectionText(selected, includeBusiness, sizeIndex, flags.filter(id => history.current.includes(id)));
 
   useEffect(() => {
-    const publish = () => window.dispatchEvent(new CustomEvent(PLAN_UPDATED, { detail: { doors, sizeIndex, summary: selectionSummary } }));
+    const publish = () => window.dispatchEvent(new CustomEvent(PLAN_UPDATED, { detail: { doors, residential, sizeIndex, summary: selectionSummary } }));
     publish();
     window.addEventListener(PLAN_REQUESTED, publish);
     return () => window.removeEventListener(PLAN_REQUESTED, publish);
-  }, [doors, sizeIndex, selectionSummary]);
+  }, [doors, residential, sizeIndex, selectionSummary]);
   useEffect(() => {
     const receiveSize = (event: Event) => {
       const index = (event as CustomEvent<unknown>).detail;
@@ -184,6 +184,7 @@ export function RouteMapSection() {
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'HLN-route-selection.csv'; anchor.click(); URL.revokeObjectURL(url);
   }
   function useSelection() {
+    if (!meetsHomeMinimum(residential)) { setNotice("Choose routes totaling at least 1,000 homes before continuing."); return; }
     window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: selectionSummary }));
     setFullscreen(false); setNotice('Your route plan has been added to the inquiry section below.');
     setTimeout(() => document.getElementById('reserve')?.scrollIntoView({ behavior: 'smooth' }), 50);
@@ -254,7 +255,8 @@ export function RouteMapSection() {
           <label className="planner-switch"><input type="checkbox" checked={includeBusiness} onChange={e => setIncludeBusiness(e.target.checked)} /><span>Include business addresses</span></label>
           <div className="planner-price"><label htmlFor="planner-size">Your ad size<select id="planner-size" value={sizeIndex} onChange={e => setSizeIndex(Number(e.target.value))}>{AD_SIZES.map((s, i) => <option value={i} key={s.label}>{s.label} · ${s.rate.toFixed(2)}/door</option>)}</select></label><span>Estimated ad cost</span><strong>{adCost(price)}</strong><small>{number(doors)} deliveries × ${AD_SIZES[sizeIndex].rate.toFixed(2)} per door</small><p>Final distribution and availability confirmed with HLN.</p></div>
           <div className="planner-mailbox-note"><b>⌂ Houses can share mailboxes.</b><p>Cluster mailbox neighborhoods may be classified as apartments by some providers. Review the area before excluding it. This feed does not separate housing types.</p></div>
-          <button className="planner-continue" disabled={!selected.length} onClick={useSelection}>Use these routes <span>→</span></button><button className="planner-export" disabled={!selected.length} onClick={exportSelection}>↓ Export selection CSV</button><small className="planner-saved">Your plan is saved in this browser when storage is available.</small>
+          <div className="planner-minimum" data-ready={meetsHomeMinimum(residential)} role="status"><strong>1,000-home minimum</strong><p>{meetsHomeMinimum(residential) ? `${number(residential)} residential addresses selected. Minimum met.` : residential ? `Add routes with at least ${number(MINIMUM_HOMES - residential)} more homes to continue.` : 'Select routes totaling at least 1,000 homes to get started.'}</p><small>Business addresses do not count toward the home minimum. Housing types are not verified.</small></div>
+          <button className="planner-continue" disabled={!meetsHomeMinimum(residential)} onClick={useSelection}>Use these routes <span>→</span></button><button className="planner-export" disabled={!selected.length} onClick={exportSelection}>↓ Export selection CSV</button><small className="planner-saved">Your plan is saved in this browser when storage is available.</small>
         </aside>
       </div>
       <footer className="planner-footer"><div className="planner-route-filter"><input aria-label="Filter loaded routes" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter loaded routes or city…" /><label><input type="checkbox" checked={showSelected} onChange={e => setShowSelected(e.target.checked)} /> Selected only</label></div><p role="status" aria-live="polite">{notice || 'Click a route from the list on the right to highlight it on the map.'}</p></footer>

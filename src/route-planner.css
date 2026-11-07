@@ -21,3 +21,9 @@
 @media(max-width:1100px) and (min-width:851px){.planner-body{grid-template-columns:175px minmax(0,1fr) 280px}}
 @media(max-width:850px){.planner-route-list{max-height:270px;display:grid;grid-template-columns:1fr 1fr;gap:6px}.planner-route-option{margin-bottom:0}.planner-summary .planner-price{grid-row:2/8}.planner-route-picker{margin:0 0 15px}.planner-route-picker-heading span{font-size:9px}}
 @media(max-width:560px){.planner-route-list{display:block;max-height:250px}.planner-route-option{margin-bottom:6px;padding:11px}.planner-route-option strong{font-size:12px}.planner-route-option small{font-size:9px}.planner-tools>.planner-tool:first-of-type{font-size:9px}.planner-route-picker-heading h3{font-size:24px}}
+
+.planner-minimum { padding: .85rem; margin: .8rem 0; border: 1px solid #bf885d; background: #fff0df; color: #483828; }
+.planner-minimum strong { display: block; font-size: .78rem; }
+.planner-minimum p { margin: .35rem 0; font-size: .75rem; line-height: 1.5; }
+.planner-minimum small { display: block; font-size: .65rem; line-height: 1.5; }
+.planner-minimum[data-ready="true"] { background: #edf2e7; border-color: #879375; color: #34432a; }

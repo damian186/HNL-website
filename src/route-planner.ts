@@ -3,6 +3,10 @@ export type PostalRoute = {
   income: number | null; age: number | null; household: number | null;
   paths: [number, number][][]; fetchedAt: string;
 };
+export const MINIMUM_HOMES = 1000;
+export function meetsHomeMinimum(residential: number): boolean {
+  return Number.isSafeInteger(residential) && residential >= MINIMUM_HOMES;
+}
 export const AD_SIZES = [
   { label: '1/6 panel', rate: 0.10 }, { label: '1/4 panel', rate: 0.15 },
   { label: '1/3 panel', rate: 0.20 }, { label: '1/2 panel', rate: 0.30 },
@@ -58,5 +62,5 @@ export function routeTouchesRadius(paths: Point[][], center: Point, meters: numb
 }
 export function routeSelectionText(routes: PostalRoute[], includeBusiness: boolean, sizeIndex: number, flags: string[]): string {
   const doors = totalDeliveries(routes, includeBusiness), size = AD_SIZES[sizeIndex];
-  return `HLN route inquiry\nRoutes: ${routes.map(r => r.id).join(', ')}\n${doors.toLocaleString()} estimated deliveries (${includeBusiness ? 'residential + business' : 'residential only'})\nAd size: ${size.label} at $${size.rate.toFixed(2)}/door\nEstimated ad cost: $${(doors * size.rate).toFixed(2)}\nHousing type: not verified; cluster mailboxes need review.${flags.length ? '\nFlagged for cluster-mailbox review: ' + flags.join(', ') : ''}\nCounts and route availability must be reconfirmed before mailing.`;
+  return `HLN route inquiry\nRoutes: ${routes.map(r => r.id).join(', ')}\n${doors.toLocaleString()} estimated deliveries (${includeBusiness ? 'residential + business' : 'residential only'})\nAd size: ${size.label} at $${size.rate.toFixed(2)}/door\nEstimated ad cost: $${(doors * size.rate).toFixed(2)}\nMinimum mailing: ${MINIMUM_HOMES.toLocaleString()} homes (${meetsHomeMinimum(routes.reduce((sum, route) => sum + route.residential, 0)) ? "met" : "not met"})\nHousing type: not verified; cluster mailboxes need review.${flags.length ? '\nFlagged for cluster-mailbox review: ' + flags.join(', ') : ''}\nCounts and route availability must be reconfirmed before mailing.`;
 }

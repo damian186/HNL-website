@@ -12,9 +12,10 @@ import { PROOF_PACKAGES, type ProofPackage } from "./proofPackages";
 import { RouteMapSection } from "./RouteMap";
 import { ZFoldSection } from "./ZFoldSection";
 import { useMailerPlan } from "./mailer-plan";
-import { AD_SIZES } from "./route-planner";
+import { AD_SIZES, meetsHomeMinimum } from "./route-planner";
 
 function RouteInquiry() {
+  const plan = useMailerPlan();
   const [summary, setSummary] = React.useState('');
   const [copied, setCopied] = React.useState(false);
   React.useEffect(() => {
@@ -25,7 +26,11 @@ function RouteInquiry() {
     window.addEventListener('hln-route-selection', receive);
     return () => window.removeEventListener('hln-route-selection', receive);
   }, []);
-  if (!summary) return null;
+  React.useEffect(() => {
+    setSummary((current) => current ? plan.summary : '');
+    setCopied(false);
+  }, [plan.summary]);
+  if (!summary || !meetsHomeMinimum(plan.residential)) return null;
   return <div className="planner-inquiry"><label htmlFor="route-inquiry-summary">Your selected route plan</label><textarea id="route-inquiry-summary" readOnly value={summary} /><button onClick={async () => {
     try { await navigator.clipboard.writeText(summary); setCopied(true); } catch { setCopied(false); }
   }}>{copied ? 'Copied' : 'Copy route plan'}</button><p>Keep this plan for your conversation with HLN. Selecting routes does not reserve space or submit an order.</p></div>;
@@ -213,7 +218,7 @@ function App() {
               </a>
             </div>
             <p className="hero__fine">
-              Shared mailing. Local businesses. <strong>From 10¢ a door.</strong>
+              Shared mailing. Local businesses. <strong>From 10¢ a door.</strong> 1,000-home minimum.
             </p>
           </div>
 
@@ -518,7 +523,7 @@ function ProofPackageRows() {
             Pick your <span className="is-orange">route size.</span>
           </h2>
           <p className="packages-head__note">
-            {Math.round(adSize.rate * 100)}¢ per door · compare estimated mailing totals
+            1,000-home minimum · {Math.round(adSize.rate * 100)}¢ per door
           </p>
         </Reveal>
       </div>
