@@ -177,7 +177,6 @@ function App() {
           <a href="#perks">The perks</a>
           <a href="#mailer">Ad sizes</a>
           <a href="#map">Route map</a>
-          <a href="#routes">Routes</a>
         </nav>
         <a href="#reserve">Check available routes</a>
       </header>
@@ -253,8 +252,6 @@ function App() {
       <BusinessBenefitsSection />
 
       <RouteMapSection />
-
-      <RouteBoard />
 
       <ZFoldSection />
 
@@ -803,85 +800,6 @@ function BusinessBenefitsSection() {
   );
 }
 
-type RouteStatus = "open" | "reserved" | "waitlist";
-
-type ManifestRoute = {
-  route: string;
-  area: string;
-  homes: string;
-  status: RouteStatus;
-};
-
-const ROUTE_MANIFEST: ManifestRoute[] = [
-  { route: "26", area: "Spring Branch", homes: "5,000", status: "open" },
-  { route: "14", area: "The Heights", homes: "4,200", status: "open" },
-  { route: "09", area: "Katy", homes: "6,800", status: "reserved" },
-  { route: "31", area: "Cypress", homes: "5,400", status: "open" },
-  { route: "17", area: "Bellaire", homes: "3,900", status: "waitlist" },
-  { route: "42", area: "Pearland", homes: "6,100", status: "open" },
-  { route: "05", area: "Sugar Land", homes: "7,200", status: "reserved" },
-  { route: "38", area: "The Woodlands", homes: "5,800", status: "open" },
-];
-
-const STATUS_LABEL: Record<RouteStatus, string> = {
-  open: "Open",
-  reserved: "Reserved",
-  waitlist: "Waitlist",
-};
-
-function RouteBoard() {
-  return (
-    <section className="section routes" id="routes" aria-label="Route board">
-      <Reveal className="routes__head">
-        <p className="eyebrow">Route board — active drop zones</p>
-        <h2>
-          Where the <span className="script">card</span> lands.
-        </h2>
-        <div className="routes__legend" aria-hidden="true">
-          <span className="routes__legend-item">
-            <i className="chip chip--open" /> Open — slots available
-          </span>
-          <span className="routes__legend-item">
-            <i className="chip chip--reserved" /> Reserved — next drop locked
-          </span>
-          <span className="routes__legend-item">
-            <i className="chip chip--waitlist" /> Waitlist — join the queue
-          </span>
-        </div>
-      </Reveal>
-
-      <ol className="route-grid">
-        {ROUTE_MANIFEST.map((manifestRoute, index) => (
-          <motion.li
-            key={manifestRoute.route}
-            className={`route-card route-card--${manifestRoute.status}`}
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            style={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.5, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="route-card__rt">RT {manifestRoute.route}</span>
-            <span className="route-card__area">{manifestRoute.area}</span>
-            <span className="route-card__homes">
-              {manifestRoute.homes} <em>homes</em>
-            </span>
-            <span className={`chip chip--${manifestRoute.status}`}>
-              {STATUS_LABEL[manifestRoute.status]}
-            </span>
-          </motion.li>
-        ))}
-      </ol>
-
-      <Reveal delay={0.1}>
-        <p className="routes__footnote">
-          Don&apos;t see your zip? Routes certify monthly — ask at booking.
-        </p>
-      </Reveal>
-    </section>
-  );
-}
-
 function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -901,7 +819,6 @@ function SiteFooter() {
           <a href="#perks">The perks</a>
           <a href="#packages">Packages</a>
           <a href="#map">Route map</a>
-          <a href="#routes">Routes</a>
           <a href="#reserve">Reserve</a>
         </nav>
         <div className="site-footer__fine">

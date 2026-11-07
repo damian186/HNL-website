@@ -587,8 +587,7 @@ a {
 /* ---------- perks ---------- */
 
 .perks__head h2,
-.howto__head h2,
-.routes__head h2 {
+.howto__head h2 {
   font-size: clamp(2.2rem, 4.6vw, 3.6rem);
   margin-bottom: 0.6rem;
 }
@@ -896,138 +895,6 @@ a {
 .ticket__text {
   font-size: 0.95rem;
   color: rgba(14, 14, 12, 0.82);
-}
-
-/* ---------- routes ---------- */
-
-.routes__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem 1.6rem;
-  margin-top: 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: rgba(14, 14, 12, 0.75);
-}
-
-.routes__legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 0.28rem 0.6rem;
-  border: 2px solid var(--ink);
-  font-style: normal;
-}
-
-i.chip {
-  width: 0.8rem;
-  height: 0.8rem;
-  padding: 0;
-  border-radius: 50%;
-}
-
-.chip--open {
-  background: var(--orange);
-  color: var(--cream);
-}
-
-.chip--reserved {
-  background: var(--ink);
-  color: var(--cream);
-}
-
-.chip--waitlist {
-  background: transparent;
-  color: var(--ink);
-  border-style: dashed;
-}
-
-.route-grid {
-  list-style: none;
-  margin: 2.2rem 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(0.9rem, 2vw, 1.3rem);
-}
-
-.route-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  background: #fffdf8;
-  border: 3px solid var(--ink);
-  padding: 1.2rem 1.2rem 1.3rem;
-  box-shadow: 5px 5px 0 var(--ink);
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-
-.route-card:hover {
-  transform: translate(-2px, -3px);
-  box-shadow: 8px 9px 0 var(--orange);
-}
-
-.route-card--reserved {
-  background: var(--cream-deep);
-}
-
-.route-card--waitlist {
-  border-style: dashed;
-  box-shadow: 5px 5px 0 rgba(14, 14, 12, 0.35);
-}
-
-.route-card__rt {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--orange);
-}
-
-.route-card__area {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  text-transform: uppercase;
-  line-height: 1.05;
-}
-
-.route-card__homes {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  color: rgba(14, 14, 12, 0.72);
-  margin-bottom: 0.5rem;
-}
-
-.route-card__homes em {
-  font-style: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.route-card .chip {
-  align-self: flex-start;
-}
-
-.routes__footnote {
-  margin-top: 1.8rem;
-  font-family: var(--font-script);
-  font-size: 1.35rem;
-  transform: rotate(-1deg);
-  display: inline-block;
 }
 
 /* ---------- reserve / calendly ---------- */
@@ -1709,10 +1576,6 @@ i.chip {
     margin-inline: auto;
   }
 
-  .route-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .howto__row {
     grid-template-columns: 1fr;
     max-width: 30rem;
@@ -1747,10 +1610,6 @@ i.chip {
   .logo-slot--stamp {
     width: 2.9rem;
     height: 3.2rem;
-  }
-
-  .route-grid {
-    grid-template-columns: 1fr;
   }
 
   .proof-row {
