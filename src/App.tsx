@@ -178,7 +178,7 @@ function App() {
           <a href="#mailer">Ad sizes</a>
           <a href="#map">Route map</a>
         </nav>
-        <a href="#reserve">Check available routes</a>
+        <a href="#sample-ad">Get a free sample ad</a>
       </header>
 
       <section className="hero" id="top" aria-label="Houston Local Network mailer ads">
@@ -209,13 +209,14 @@ function App() {
               mascot hunt together — with your business along for the discovery.
             </p>
             <div className="hero__actions">
-              <a className="btn btn--solid" href="#perks">
+              <a className="btn btn--solid" href="#sample-ad">
+                Get a free sample ad
+              </a>
+              <a className="btn btn--outline" href="#perks">
                 Discover what’s inside ↓
               </a>
-              <a className="btn btn--outline" href="#map">
-                Explore neighborhoods
-              </a>
             </div>
+            <p className="hero__sample-invite">Have a logo, a business photo, or an existing ad? Let’s start with that.</p>
             <p className="hero__fine">
               Shared mailing. Local businesses. <strong>From 10¢ a door.</strong> 1,000-home minimum.
             </p>
@@ -254,6 +255,8 @@ function App() {
       <RouteMapSection />
 
       <ZFoldSection />
+
+      <SampleAdInvitation />
 
       <ProofPackageRows />
 
@@ -480,6 +483,27 @@ function PerksSection() {
         <svg className="perks__takeaway-star" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 0 31 17 48 24 31 31 24 48 17 31 0 24 17 17Z" fill="currentColor" /></svg>
         <p>A reason to open it. <span>A reason to explore it.</span> More chances to discover your business.</p>
         <span className="perks__takeaway-note">That’s the idea behind every fold.</span>
+      </div>
+    </section>
+  );
+}
+
+function SampleAdInvitation() {
+  return (
+    <section className="sample-ad" id="sample-ad" aria-labelledby="sample-ad-heading">
+      <div className="sample-ad__copy">
+        <p className="eyebrow">See your business in the neighborhood</p>
+        <h2 id="sample-ad-heading">Your business.<br /><span className="script">Let’s make it look good.</span></h2>
+        <p className="sample-ad__lead">Get a free sample ad.</p>
+        <p className="sample-ad__invitation">Send us your logo, a business photo, or an existing ad. We’ll show you how your business could look in the next HLN mailer.</p>
+        <p className="sample-ad__reassurance">Free sample. No commitment to book. No routes or ad size needed to get started.</p>
+      </div>
+      <div className="sample-ad__assets">
+        <p className="sample-ad__asset-kicker">Start with any one of these</p>
+        <div className="sample-ad__asset"><span className="sample-ad__asset-number" aria-hidden="true">01</span><div><h3>Your logo</h3><p>Give us the mark that makes your business yours.</p></div></div>
+        <div className="sample-ad__asset"><span className="sample-ad__asset-number" aria-hidden="true">02</span><div><h3>A business photo</h3><p>Your work, your team, your products, or your storefront.</p></div></div>
+        <div className="sample-ad__asset"><span className="sample-ad__asset-number" aria-hidden="true">03</span><div><h3>An existing ad</h3><p>Something you already use is a great starting point.</p></div></div>
+        <p className="sample-ad__asset-note">Tell us what you’d like to promote. We’ll help bring it together.</p>
       </div>
     </section>
   );

@@ -97,7 +97,8 @@ export function ZFoldSection() {
             <small>{minimumMet ? '1,000-home minimum met. Updates with your route selection and ad size.' : plan.doors ? `Below minimum. Add routes with at least ${remainingHomes.toLocaleString('en-US')} more homes.` : 'Select routes totaling at least 1,000 homes for your own estimate.'}</small>
           </div>
           <p className="zfold-options__placement">Preview: panel {placement.panel + 1} · {isTwoThirds ? '2/3 ad + 1/3 remaining' : `space ${Math.min(placement.slot + 1, slots)} of ${slots}`}</p>
-          <a className="btn btn--solid zfold-options__cta" href={minimumMet ? '#reserve' : '#map'} onClick={() => { if (minimumMet) window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: plan.summary })); }}>{minimumMet ? 'Review this mailer plan' : plan.doors ? `Add ${remainingHomes.toLocaleString('en-US')} more homes` : 'Choose at least 1,000 homes'}</a>
+          <a className="btn btn--outline zfold-options__cta" href={minimumMet ? '#reserve' : '#map'} onClick={() => { if (minimumMet) window.dispatchEvent(new CustomEvent('hln-route-selection', { detail: plan.summary })); }}>{minimumMet ? 'Review this mailer plan' : plan.doors ? `Add ${remainingHomes.toLocaleString('en-US')} more homes` : 'Choose at least 1,000 homes'}</a>
+          <a className="btn btn--solid zfold-options__sample" href="#sample-ad">Get a free sample ad</a>
           <p className="zfold-options__fine">Estimates only. Distribution, availability, and final artwork confirmed before booking.</p>
         </div>
       </div>
