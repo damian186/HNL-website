@@ -715,24 +715,24 @@ function ResponseIllustration({ type }: { type: string }) {
   return <svg viewBox="0 0 80 80" className="response-demo__icon" aria-hidden="true"><rect x="5" y="13" width="70" height="49" rx="4" fill="#fffdf8" stroke="currentColor" strokeWidth="3" /><path d="M6 25h68M18 19h1m5 0h1m5 0h1M15 35h27m-27 8h20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><path d="m43 36 4 31 7-9 10 13 7-5-10-13 11-3z" fill="#f7955c" stroke="currentColor" strokeWidth="2" /></svg>;
 }
 
-function ResponseChart({ action }: { action: typeof RESPONSE_ACTIONS[number] }) {
+function ResponseChart({ action, onComplete }: { action: typeof RESPONSE_ACTIONS[number]; onComplete: () => void }) {
   const reducedMotion = useReducedMotion();
   const [day, setDay] = React.useState(reducedMotion ? 3 : 0);
-  const [playing, setPlaying] = React.useState(false);
-  const hasPlayed = useRef(false);
+  const [playing, setPlaying] = React.useState(true);
+  const [visible, setVisible] = React.useState(false);
   React.useEffect(() => {
-    if (!playing || reducedMotion) return;
-    if (day === 3) { setPlaying(false); return; }
-    const timer = window.setTimeout(() => setDay((previous) => previous + 1), 1000);
+    if (!playing || !visible || reducedMotion) return;
+    const timer = day === 3
+      ? window.setTimeout(onComplete, 1500)
+      : window.setTimeout(() => setDay((previous) => previous + 1), 1000);
     return () => window.clearTimeout(timer);
-  }, [day, playing, reducedMotion]);
+  }, [day, playing, visible, reducedMotion, onComplete]);
   React.useEffect(() => { if (reducedMotion) { setDay(3); setPlaying(false); } }, [reducedMotion]);
   const maximum = Math.ceil(action.values[3] / 2) * 2;
   const points = action.values.map((value, index) => ({ x: 40 + [0, 2, 4, 7][index] / 7 * 300, y: 145 - value / maximum * 115 }));
   const line = points.slice(0, day + 1).map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" ");
-  return <motion.div className="response-demo" onViewportEnter={() => {
-    if (!hasPlayed.current) { hasPlayed.current = true; if (!reducedMotion) setPlaying(true); }
-  }} viewport={{ once: true, amount: 0.4 }}>
+  return <motion.div className="response-demo" onViewportEnter={() => setVisible(true)}
+    onViewportLeave={() => setVisible(false)} viewport={{ amount: 0.25 }}>
     <div className="response-demo__summary">
       <div className="response-demo__illustration"><ResponseIllustration type={action.id} /><span>{action.id === "scan" ? "QR illustration" : action.id === "call" ? "Tap to call" : "Visit website"}</span></div>
       <div className="response-demo__total"><span className="response-demo__asof">Example · {RESPONSE_DAYS[day]}</span><strong>{action.values[day]}</strong><span>{action.unit}</span></div>
@@ -748,7 +748,7 @@ function ResponseChart({ action }: { action: typeof RESPONSE_ACTIONS[number] }) 
     <div className="response-demo__days" aria-label="Explore example cumulative totals">
       {RESPONSE_DAYS.map((label, index) => <button type="button" key={label} aria-pressed={day === index} aria-label={`${label}: ${action.values[index]} ${action.unit}`} onClick={() => { setPlaying(false); setDay(index); }}><span>{label}</span><strong>{action.values[index]}</strong><span>total</span></button>)}
     </div>
-    <div className="response-demo__chart-note"><span>Cumulative totals · illustrative numbers</span><button type="button" onClick={() => { setDay(0); setPlaying(true); }} disabled={!!reducedMotion || playing}>{playing ? "Playing…" : "Replay example"}</button></div>
+    <div className="response-demo__chart-note"><span>Cumulative totals · illustrative numbers</span><button type="button" onClick={() => { if (!playing && day === 3) setDay(0); setPlaying((previous) => !previous); }} disabled={!!reducedMotion}>{reducedMotion ? "Animation off" : playing ? "Pause animation" : "Play animation"}</button></div>
     <p className="response-demo__caption">{action.caption}</p>
     <p className="response-demo__limit">{action.limit}</p>
   </motion.div>;
@@ -757,6 +757,7 @@ function ResponseChart({ action }: { action: typeof RESPONSE_ACTIONS[number] }) 
 function BusinessBenefitsSection() {
   const [selected, setSelected] = React.useState(0);
   const action = RESPONSE_ACTIONS[selected];
+  const nextMetric = React.useCallback(() => setSelected((previous) => (previous + 1) % RESPONSE_ACTIONS.length), []);
   return (
     <section className="business-benefits" id="business" aria-labelledby="business-heading">
       <div className="business-benefits__inner">
@@ -779,7 +780,7 @@ function BusinessBenefitsSection() {
             <div className="response-preview__actions" aria-label="Choose an example response metric">
               {RESPONSE_ACTIONS.map((item, index) => <button type="button" key={item.id} aria-pressed={selected === index} aria-controls="response-example" onClick={() => setSelected(index)}>{item.label}</button>)}
             </div>
-            <div id="response-example"><ResponseChart key={action.id} action={action} /></div>
+            <div id="response-example"><ResponseChart key={action.id} action={action} onComplete={nextMetric} /></div>
             <p className="response-preview__availability">Demo only — not actual results or a performance forecast. Advertiser reporting is coming soon.</p>
           </div>
         </div>
