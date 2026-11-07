@@ -761,13 +761,13 @@ function BusinessBenefitsSection() {
   return (
     <section className="business-benefits" id="business" aria-labelledby="business-heading">
       <div className="business-benefits__inner">
+        <div className="business-benefits__grid">
+          <div className="business-benefits__reasons">
         <div className="business-benefits__head">
           <p className="eyebrow eyebrow--on-dark">Here’s what your business gets</p>
           <h2 id="business-heading">Your ad. Your page.<br /><span className="is-orange">See the response.</span></h2>
           <p>A custom ad gets you noticed. Your business page gives readers a next step. Tracking helps you see the actions that follow.</p>
         </div>
-        <div className="business-benefits__grid">
-          <div className="business-benefits__reasons">
             <article><span className="business-benefits__number">01</span><div><h3>A custom ad.</h3><p>Your brand, your offer, and a clear reason to choose you — designed for the neighborhood mailer.</p></div></article>
             <article><span className="business-benefits__number">02</span><div><h3>Your own business page.</h3><p>A place to learn about your business, tap to call, or visit your website after scanning your ad.</p></div></article>
             <article><span className="business-benefits__number">03</span><div><h3>Response tracking.</h3><p>See how scans, call-button clicks, and website clicks build after delivery.</p><span className="business-benefits__coming">Advertiser reporting · coming soon</span></div></article>
