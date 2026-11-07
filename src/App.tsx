@@ -695,10 +695,64 @@ function ProofAnimatedCell({
 }
 
 const RESPONSE_ACTIONS = [
-  { id: "scan", label: "QR scans", title: "From the card to your page.", text: "A scan opens your dedicated business page. Scan activity shows how often readers take that first step.", signal: "Business page opened", limit: "Scan activity is not a count of unique customers." },
-  { id: "call", label: "Call-button clicks", title: "A tap toward a conversation.", text: "Readers can tap to call from your business page. Call-button clicks help show interest in contacting you.", signal: "Call button tapped", limit: "A tap does not confirm a connected call or a sale." },
-  { id: "website", label: "Website clicks", title: "Keep the discovery going.", text: "A website button takes readers to your site to explore your services, see your work, or learn more.", signal: "Website button tapped", limit: "A website click does not confirm an inquiry or purchase." },
+  { id: "scan", label: "QR scans", values: [6, 8, 10, 18], unit: "total QR scans", caption: "People opening your business page from the mailer.", limit: "Scans can include repeat visits; they are not unique customers." },
+  { id: "call", label: "Call-button clicks", values: [1, 2, 3, 5], unit: "total call-button clicks", caption: "People tapping the call button on your business page.", limit: "A call-button click does not confirm a connected call or sale." },
+  { id: "website", label: "Website clicks", values: [3, 5, 8, 12], unit: "total website clicks", caption: "People clicking through from your business page to your website.", limit: "A website click does not confirm an inquiry or purchase." },
 ];
+const RESPONSE_DAYS = ["Drop day", "Day 2", "Day 4", "Day 7"];
+
+function ResponseIllustration({ type }: { type: string }) {
+  if (type === "scan") {
+    const modules = ["10101101", "01100110", "11011001", "00101110", "10110011", "01010100", "11100101", "10011010"];
+    return <svg viewBox="0 0 27 27" aria-hidden="true" className="response-demo__icon">
+      <rect width="27" height="27" fill="#fffdf8" />
+      {[[2, 2], [18, 2], [2, 18]].map(([x, y]) => <g key={`${x}-${y}`}><rect x={x} y={y} width="7" height="7" fill="currentColor" /><rect x={x + 1} y={y + 1} width="5" height="5" fill="#fffdf8" /><rect x={x + 2} y={y + 2} width="3" height="3" fill="currentColor" /></g>)}
+      {modules.flatMap((row, y) => [...row].map((bit, x) => bit === "1" ? <rect key={`${x}-${y}`} x={11 + x * 1.7} y={11 + y * 1.7} width="1.3" height="1.3" fill="currentColor" /> : null))}
+      <path d="M11 2h2v3h2v4h-2V7h-2zM2 11h3v2H2zm4 3h3v2H6zm5 9h3v2h-3z" fill="currentColor" />
+    </svg>;
+  }
+  if (type === "call") return <svg viewBox="0 0 80 80" className="response-demo__icon" aria-hidden="true"><rect x="19" y="5" width="42" height="70" rx="7" fill="#fffdf8" stroke="currentColor" strokeWidth="3" /><path d="M32 12h16M35 67h10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><circle cx="40" cy="39" r="15" fill="#f7955c" /><path d="m33 30-3 4c0 8 8 16 16 16l4-4-6-5-3 3c-3-1-5-3-6-6l3-3z" fill="currentColor" /></svg>;
+  return <svg viewBox="0 0 80 80" className="response-demo__icon" aria-hidden="true"><rect x="5" y="13" width="70" height="49" rx="4" fill="#fffdf8" stroke="currentColor" strokeWidth="3" /><path d="M6 25h68M18 19h1m5 0h1m5 0h1M15 35h27m-27 8h20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><path d="m43 36 4 31 7-9 10 13 7-5-10-13 11-3z" fill="#f7955c" stroke="currentColor" strokeWidth="2" /></svg>;
+}
+
+function ResponseChart({ action }: { action: typeof RESPONSE_ACTIONS[number] }) {
+  const reducedMotion = useReducedMotion();
+  const [day, setDay] = React.useState(reducedMotion ? 3 : 0);
+  const [playing, setPlaying] = React.useState(false);
+  const hasPlayed = useRef(false);
+  React.useEffect(() => {
+    if (!playing || reducedMotion) return;
+    if (day === 3) { setPlaying(false); return; }
+    const timer = window.setTimeout(() => setDay((previous) => previous + 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [day, playing, reducedMotion]);
+  React.useEffect(() => { if (reducedMotion) { setDay(3); setPlaying(false); } }, [reducedMotion]);
+  const maximum = Math.ceil(action.values[3] / 2) * 2;
+  const points = action.values.map((value, index) => ({ x: 40 + [0, 2, 4, 7][index] / 7 * 300, y: 145 - value / maximum * 115 }));
+  const line = points.slice(0, day + 1).map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" ");
+  return <motion.div className="response-demo" onViewportEnter={() => {
+    if (!hasPlayed.current) { hasPlayed.current = true; if (!reducedMotion) setPlaying(true); }
+  }} viewport={{ once: true, amount: 0.4 }}>
+    <div className="response-demo__summary">
+      <div className="response-demo__illustration"><ResponseIllustration type={action.id} /><span>{action.id === "scan" ? "QR illustration" : action.id === "call" ? "Tap to call" : "Visit website"}</span></div>
+      <div className="response-demo__total"><span className="response-demo__asof">Example · {RESPONSE_DAYS[day]}</span><strong>{action.values[day]}</strong><span>{action.unit}</span></div>
+    </div>
+    <div className="response-demo__chart">
+      <svg viewBox="0 0 380 174" role="img" aria-label={`Illustrative cumulative ${action.label.toLowerCase()}: ${action.values.map((value, index) => `${RESPONSE_DAYS[index]}, ${value} total`).join("; ")}. Not actual campaign results.`}>
+        {[0, maximum / 2, maximum].map((value) => { const y = 145 - value / maximum * 115; return <g key={value}><line x1="40" x2="340" y1={y} y2={y} stroke="#d5cdbc" strokeDasharray="3 5" /><text x="24" y={y + 4} textAnchor="end">{value}</text></g>; })}
+        {day > 0 && <path d={`${line} L${points[day].x},145 L40,145 Z`} fill="#f7955c" opacity=".16" />}
+        <motion.path d={line} fill="none" stroke="#ad5627" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((point, index) => <g key={index}><text x={point.x} y="165" textAnchor="middle">{RESPONSE_DAYS[index]}</text>{index <= day && <><circle cx={point.x} cy={point.y} r="5" fill={index === day ? "#0e0e0c" : "#ad5627"} stroke="#fffdf8" strokeWidth="2" /><text className="response-demo__point-value" x={point.x} y={point.y - 12} textAnchor="middle">{action.values[index]}</text></>}</g>)}
+      </svg>
+    </div>
+    <div className="response-demo__days" aria-label="Explore example cumulative totals">
+      {RESPONSE_DAYS.map((label, index) => <button type="button" key={label} aria-pressed={day === index} aria-label={`${label}: ${action.values[index]} ${action.unit}`} onClick={() => { setPlaying(false); setDay(index); }}><span>{label}</span><strong>{action.values[index]}</strong><span>total</span></button>)}
+    </div>
+    <div className="response-demo__chart-note"><span>Cumulative totals · illustrative numbers</span><button type="button" onClick={() => { setDay(0); setPlaying(true); }} disabled={!!reducedMotion || playing}>{playing ? "Playing…" : "Replay example"}</button></div>
+    <p className="response-demo__caption">{action.caption}</p>
+    <p className="response-demo__limit">{action.limit}</p>
+  </motion.div>;
+}
 
 function BusinessBenefitsSection() {
   const [selected, setSelected] = React.useState(0);
@@ -707,33 +761,29 @@ function BusinessBenefitsSection() {
     <section className="business-benefits" id="business" aria-labelledby="business-heading">
       <div className="business-benefits__inner">
         <div className="business-benefits__head">
-          <p className="eyebrow eyebrow--on-dark">Now, put your business in the story</p>
-          <h2 id="business-heading">Get discovered.<br /><span className="is-orange">Give them a next step.</span></h2>
-          <p>The neighborhood draws them in. Your creative, your offer, and a clear way to respond give them somewhere to go next.</p>
+          <p className="eyebrow eyebrow--on-dark">Here’s what your business gets</p>
+          <h2 id="business-heading">Your ad. Your page.<br /><span className="is-orange">See the response.</span></h2>
+          <p>A custom ad gets you noticed. Your business page gives readers a next step. Tracking helps you see the actions that follow.</p>
         </div>
         <div className="business-benefits__grid">
           <div className="business-benefits__reasons">
-            <article><span className="business-benefits__number">01</span><div><h3>Look like your business.</h3><p>Creative built around your brand, your services, and your offer. Give neighbors a clear reason to choose you.</p></div></article>
-            <article><span className="business-benefits__number">02</span><div><h3>Be part of the discovery.</h3><p>Your ad sits alongside local offers, community happenings, and the hunt — giving readers more reasons to explore the piece.</p></div></article>
-            <article><span className="business-benefits__number">03</span><div><h3>Make the next step easy.</h3><p>A dedicated business page connects the printed ad to your story, a call, or a visit to your website.</p></div></article>
+            <article><span className="business-benefits__number">01</span><div><h3>A custom ad.</h3><p>Your brand, your offer, and a clear reason to choose you — designed for the neighborhood mailer.</p></div></article>
+            <article><span className="business-benefits__number">02</span><div><h3>Your own business page.</h3><p>A place to learn about your business, tap to call, or visit your website after scanning your ad.</p></div></article>
+            <article><span className="business-benefits__number">03</span><div><h3>Response tracking.</h3><p>See how scans, call-button clicks, and website clicks build after delivery.</p><span className="business-benefits__coming">Advertiser reporting · coming soon</span></div></article>
             <a className="business-benefits__map-link" href="#map">Choose your neighborhoods <span aria-hidden="true">→</span></a>
           </div>
           <div className="response-preview">
-            <div className="response-preview__heading"><span>Tracking preview</span><span aria-hidden="true">HLN / RESPONSE</span></div>
-            <h3>See what happens<br /><span>after the mailbox.</span></h3>
-            <p className="response-preview__intro">Explore the actions a campaign can measure.</p>
-            <div className="response-preview__journey" aria-label="Response journey"><span>Your ad</span><span aria-hidden="true">→</span><span>Your business page</span><span aria-hidden="true">→</span><span>A next step</span></div>
-            <div className="response-preview__actions" aria-label="Preview a response metric">
-              {RESPONSE_ACTIONS.map((item, index) => <button type="button" key={item.id} aria-pressed={selected === index} aria-controls="response-explanation" onClick={() => setSelected(index)}><span className="response-preview__action-num" aria-hidden="true">0{index + 1}</span>{item.label}</button>)}
+            <div className="response-preview__heading"><span>Example report</span><span>Illustrative numbers</span></div>
+            <h3>See the response<br /><span>build after delivery.</span></h3>
+            <p className="response-preview__intro">Choose a metric. Follow an example week.</p>
+            <div className="response-preview__actions" aria-label="Choose an example response metric">
+              {RESPONSE_ACTIONS.map((item, index) => <button type="button" key={item.id} aria-pressed={selected === index} aria-controls="response-example" onClick={() => setSelected(index)}>{item.label}</button>)}
             </div>
-            <div className="response-preview__detail" id="response-explanation" aria-live="polite" aria-atomic="true">
-              <span className="response-preview__signal"><span aria-hidden="true" />{action.signal}</span>
-              <h4>{action.title}</h4><p>{action.text}</p><p className="response-preview__limit">{action.limit}</p>
-            </div>
-            <p className="response-preview__availability">Advertiser reporting is coming soon. Confirm tracking availability with HLN before booking.</p>
+            <div id="response-example"><ResponseChart key={action.id} action={action} /></div>
+            <p className="response-preview__availability">Demo only — not actual results or a performance forecast. Advertiser reporting is coming soon.</p>
           </div>
         </div>
-        <div className="business-benefits__close"><span>Built to be discovered.</span><span className="script">Designed for a next step.</span></div>
+        <div className="business-benefits__close"><span>From the mailbox to your business.</span><span className="script">See the next step.</span></div>
       </div>
     </section>
   );
