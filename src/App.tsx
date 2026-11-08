@@ -36,23 +36,6 @@ function RouteInquiry() {
   }}>{copied ? 'Copied' : 'Copy route plan'}</button><p>Keep this plan for your conversation with HLN. Selecting routes does not reserve space or submit an order.</p></div>;
 }
 
-const CALENDLY_EMBED_URL = "https://calendly.com/keith-smartcadence/30min?hide_event_type_details=1&hide_gdpr_banner=1&background_color=000000&text_color=fbebd0&primary_color=f7955c";
-const CALENDLY_SCRIPT_ID = "calendly-widget-script";
-
-type CalendlyWidgetOptions = {
-  parentElement: HTMLElement;
-  resize?: boolean;
-  url: string;
-};
-
-declare global {
-  interface Window {
-    Calendly?: {
-      initInlineWidget?: (options: CalendlyWidgetOptions) => void;
-    };
-  }
-}
-
 type ColorKey =
   | "color1"
   | "color2"
@@ -138,9 +121,6 @@ const createStopsArray = (
 };
 
 function App() {
-  const [isCalendlyOpen, setIsCalendlyOpen] = React.useState(false);
-  const calendlyBookingRef = useRef<HTMLDivElement>(null);
-
   React.useEffect(() => {
     if (!window.location.hash) {
       return;
@@ -150,18 +130,6 @@ function App() {
       document.querySelector(window.location.hash)?.scrollIntoView();
     });
   }, []);
-
-  const openCalendly = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    setIsCalendlyOpen(true);
-
-    window.requestAnimationFrame(() => {
-      calendlyBookingRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  };
 
   return (
     <main>
@@ -260,40 +228,7 @@ function App() {
 
       <SampleAdInvitation />
 
-      <section
-        className="section calendly-section"
-        id="reserve"
-        aria-label="Calendly route availability"
-      >
-        <div className="reserve-panel">
-          <RouteInquiry />
-          <p className="reserve-panel__tag">Reservation window — open</p>
-          <div className="calendly-section__launch">
-            <p className="route-cta-copy">
-              Schedule a quick discovery call to discuss which plan fits your budget
-              and which route fits your needs.
-            </p>
-            <LiquidLink
-              aria-controls="calendly-booking"
-              aria-expanded={isCalendlyOpen}
-              className="route-cta"
-              href="#reserve"
-              onClick={openCalendly}
-            >
-              Check available routes
-            </LiquidLink>
-          </div>
-          {isCalendlyOpen && (
-            <div
-              className="calendly-section__booking"
-              id="calendly-booking"
-              ref={calendlyBookingRef}
-            >
-              <CalendlyInlineWidget />
-            </div>
-          )}
-        </div>
-      </section>
+      <MailerProcess />
 
       <SiteFooter />
     </main>
@@ -825,6 +760,40 @@ function BusinessBenefitsSection() {
   );
 }
 
+function MailerProcess() {
+  const steps = [
+    { title: 'Request your free sample.', copy: 'Share your business, what you’d like to promote, and any artwork you have. We’ll help you picture your ad in the mailer.' },
+    { title: 'Confirm your size & routes.', copy: 'We’ll confirm your preferred ad size, routes, pricing, and availability together. Paid mailings start at 1,000 homes.' },
+    { title: 'Approve your design.', copy: 'Review your design and placement. You approve the final artwork before it goes to print.' },
+    { title: 'Fill it. Then mail it.', copy: 'We print and mail once the shared mailer for those routes is filled. We’ll confirm the mailing schedule with you.' },
+  ];
+  return (
+    <section className="section mailer-process" id="reserve" aria-labelledby="mailer-process-heading">
+      <div className="mailer-process__panel">
+        <div className="mailer-process__head">
+          <p className="eyebrow eyebrow--on-dark">Here’s how it comes together</p>
+          <h2 id="mailer-process-heading">From first idea.<br /><span>To their mailbox.</span></h2>
+          <p>A little about your business. A plan we build together. A place in the neighborhood.</p>
+        </div>
+        <ol className="mailer-process__steps">
+          {steps.map((step, index) => (
+            <li key={step.title}>
+              <span className="mailer-process__number" aria-hidden="true">0{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.copy}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mailer-process__start">
+          <div><h3>Your first step is free.</h3><p>A sample request doesn’t commit you to buying. Choosing routes doesn’t reserve space or set a mailing date.</p></div>
+          <LiquidLink className="route-cta" href="/request-sample">Get your free sample ad →</LiquidLink>
+        </div>
+        <RouteInquiry />
+      </div>
+    </section>
+  );
+}
+
 function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -844,7 +813,7 @@ function SiteFooter() {
           <a href="#perks">The perks</a>
           <a href="#packages">Packages</a>
           <a href="#map">Route map</a>
-          <a href="#reserve">Reserve</a>
+          <a href="#reserve">How it works</a>
         </nav>
         <div className="site-footer__fine">
           <h4>The fine print</h4>
@@ -864,78 +833,6 @@ function SiteFooter() {
         <span className="site-footer__tag">Shop local. Support local. Win local.</span>
       </div>
     </footer>
-  );
-}
-
-function CalendlyInlineWidget() {
-  const widgetRef = useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const widget = widgetRef.current;
-
-    if (!widget) {
-      return undefined;
-    }
-
-    let isCancelled = false;
-    let retryTimer: number | undefined;
-
-    const initializeWidget = () => {
-      if (isCancelled || !window.Calendly?.initInlineWidget) {
-        return;
-      }
-
-      widget.innerHTML = "";
-      widget.removeAttribute("data-processed");
-      window.Calendly.initInlineWidget({
-        parentElement: widget,
-        resize: true,
-        url: CALENDLY_EMBED_URL,
-      });
-    };
-
-    const appendScript = () => {
-      const script = document.createElement("script");
-      script.id = CALENDLY_SCRIPT_ID;
-      script.src = "https://assets.calendly.com/assets/external/widget.js";
-      script.async = true;
-      script.addEventListener("load", initializeWidget, { once: true });
-      document.body.appendChild(script);
-    };
-
-    if (window.Calendly?.initInlineWidget) {
-      initializeWidget();
-    } else {
-      const existingScript = document.getElementById(CALENDLY_SCRIPT_ID);
-
-      if (existingScript) {
-        existingScript.addEventListener("load", initializeWidget, { once: true });
-        retryTimer = window.setTimeout(() => {
-          if (!isCancelled && !window.Calendly?.initInlineWidget) {
-            existingScript.remove();
-            appendScript();
-          }
-        }, 1200);
-      } else {
-        appendScript();
-      }
-    }
-
-    return () => {
-      isCancelled = true;
-      window.clearTimeout(retryTimer);
-    };
-  }, []);
-
-  return (
-    <div
-      className="calendly-inline-widget"
-      data-url={CALENDLY_EMBED_URL}
-      data-auto-load="false"
-      data-resize="true"
-      ref={widgetRef}
-      style={{ minWidth: "320px", minHeight: "700px" }}
-    />
   );
 }
 

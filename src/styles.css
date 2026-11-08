@@ -919,74 +919,25 @@ a {
   color: rgba(14, 14, 12, 0.82);
 }
 
-/* ---------- reserve / calendly ---------- */
-
-.calendly-section {
-  padding-bottom: clamp(6rem, 9vw, 9rem);
-  scroll-margin-top: 7rem;
-}
-
-.reserve-panel {
-  position: relative;
-  background: var(--ink);
-  color: var(--cream);
-  padding: clamp(2.6rem, 6vw, 4.6rem) clamp(1.4rem, 4vw, 4rem);
-  border: 3px solid var(--ink);
-  box-shadow: 10px 10px 0 var(--orange);
-}
-
-.reserve-panel__tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0 0 1.6rem;
-  color: var(--orange);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-
-.reserve-panel__tag::before {
-  content: "";
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--orange);
-  animation: pulse-dot 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.35;
-    transform: scale(0.72);
-  }
-}
-
-.calendly-section__launch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(1rem, 2vw, 1.35rem);
-  margin: 0 auto clamp(1.4rem, 3vw, 2.4rem);
-  text-align: center;
-}
-
-.route-cta-copy {
-  width: min(46rem, 100%);
-  margin: 0;
-  color: var(--cream);
-  font-size: clamp(1.08rem, 2vw, 1.55rem);
-  font-weight: 700;
-  line-height: 1.22;
-}
+/* ---------- how the shared mailer comes together ---------- */
+.mailer-process { padding-bottom:clamp(5rem,8vw,8rem); scroll-margin-top:7rem; }
+.mailer-process__panel { background:var(--ink);color:var(--cream);padding:clamp(1.5rem,4vw,3.5rem);border:3px solid var(--ink);box-shadow:10px 10px 0 var(--orange); }
+.mailer-process__head { max-width:48rem; }
+.mailer-process__head h2 { margin:1rem 0 1.4rem;font:clamp(2.8rem,5.6vw,5rem)/1.06 var(--font-display);text-transform:uppercase;letter-spacing:-.015em; }
+.mailer-process__head h2 span { color:var(--orange); }
+.mailer-process__head>p:last-child { max-width:34rem;font-size:1.05rem;color:#f4efe6c7; }
+.mailer-process__steps { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.75rem;list-style:none;margin:2.75rem 0;padding:0; }
+.mailer-process__steps li { border-top:1px solid #f4efe64d;padding-top:1.1rem; }
+.mailer-process__number { display:block;color:var(--orange);font:500 .8rem var(--font-mono);letter-spacing:.08em;margin-bottom:1rem; }
+.mailer-process__steps h3 { min-height:3.6rem;font:1.55rem/1.15 var(--font-display);text-transform:uppercase;margin:0 0 .9rem;max-width:13rem; }
+.mailer-process__steps p { color:#f4efe6bf;font-size:.88rem;line-height:1.65;margin:0; }
+.mailer-process__start { display:flex;align-items:center;justify-content:space-between;gap:2rem;border-top:1px solid #f4efe64d;padding-top:2rem; }
+.mailer-process__start h3 { font:1.7rem/1.2 var(--font-display);text-transform:uppercase;margin:0 0 .5rem; }
+.mailer-process__start p { color:#f4efe6bf;font-size:.85rem;max-width:34rem;margin:0; }
+.mailer-process__start .route-cta { flex-shrink:0;width:auto;min-width:16rem;color:var(--ink); }
+.mailer-process .planner-inquiry { margin-top:2rem; }
+@media(max-width:1000px) { .mailer-process__steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:2rem}.mailer-process__steps h3{max-width:none}.mailer-process__start{align-items:flex-start;flex-direction:column}.mailer-process__start .route-cta{width:100%} }
+@media(max-width:560px) { .mailer-process__steps{grid-template-columns:1fr;gap:1.7rem;margin:2rem 0}.mailer-process__steps li{position:relative;padding-left:2.5rem;padding-top:1.2rem}.mailer-process__number{position:absolute;left:0;top:1.4rem}.mailer-process__steps h3{font-size:1.5rem;min-height:0}.mailer-process__start .route-cta{min-width:0}.mailer-process__panel{box-shadow:6px 6px 0 var(--orange)} }
 
 .route-cta {
   position: relative;
@@ -1030,25 +981,6 @@ a {
   font-family: var(--font-display);
   font-size: 1em;
   font-weight: 400;
-}
-
-.calendly-badge-widget,
-.calendly-badge-content {
-  display: none !important;
-}
-
-.calendly-section__booking {
-  margin-top: clamp(1.2rem, 2.8vw, 2rem);
-}
-
-.calendly-inline-widget {
-  width: 100%;
-  min-width: min(320px, 100%);
-  min-height: 700px;
-  margin-top: 0;
-  background: var(--ink);
-  overflow: visible;
-  isolation: isolate;
 }
 
 /* ---------- liquid button ---------- */
@@ -1671,8 +1603,7 @@ a {
   .ticker__track,
   .spin-badge__ring,
   .hero__float,
-  .hero__kicker-dot,
-  .reserve-panel__tag::before {
+  .hero__kicker-dot {
     animation: none;
   }
 }
