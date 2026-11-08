@@ -178,7 +178,7 @@ function App() {
           <a href="#mailer">Ad sizes</a>
           <a href="#map">Route map</a>
         </nav>
-        <a href="#sample-ad">Get a free sample ad</a>
+        <a href="#sample-ad">Get your free sample ad</a>
       </header>
 
       <section className="hero" id="top" aria-label="Houston Local Network mailer ads">
@@ -210,7 +210,7 @@ function App() {
             </p>
             <div className="hero__actions">
               <a className="btn btn--solid" href="#sample-ad">
-                Get a free sample ad
+                Get your free sample ad
               </a>
               <a className="btn btn--outline" href="#perks">
                 Discover what’s inside ↓
@@ -256,9 +256,9 @@ function App() {
 
       <ZFoldSection />
 
-      <SampleAdInvitation />
-
       <ProofPackageRows />
+
+      <SampleAdInvitation />
 
       <section
         className="section calendly-section"
@@ -493,8 +493,8 @@ function SampleAdInvitation() {
     <section className="sample-ad" id="sample-ad" aria-labelledby="sample-ad-heading">
       <div className="sample-ad__copy">
         <p className="eyebrow">See your business in the neighborhood</p>
-        <h2 id="sample-ad-heading">Your business.<br /><span className="script">Let’s make it look good.</span></h2>
-        <p className="sample-ad__lead">Get a free sample ad.</p>
+        <h2 id="sample-ad-heading"><span className="sample-ad__headline-lead">Get your</span><span className="sample-ad__headline-offer"><span className="sample-ad__free">Free</span> sample ad.</span></h2>
+        <p className="sample-ad__lead">Let’s make your business look good.</p>
         <p className="sample-ad__invitation">Send us your logo, a business photo, or an existing ad. We’ll show you how your business could look in the next HLN mailer.</p>
         <p className="sample-ad__reassurance">Free sample. No commitment to book. No routes or ad size needed to get started.</p>
       </div>
