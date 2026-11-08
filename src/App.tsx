@@ -804,33 +804,32 @@ function SiteFooter() {
             Local businesses. Local homes. Local offers.
           </p>
           <p>
-            Shared-card direct mail for Houston&apos;s local businesses. One
-            card, thousands of mailboxes, every scan accounted for.
+            Shared Z-fold mailers that bring local offers and neighborhood life
+            together. Made for Houston&apos;s local businesses.
           </p>
+          <a className="btn btn--solid site-footer__sample" href="/request-sample">Get your free sample ad →</a>
         </div>
         <nav className="site-footer__nav" aria-label="Footer">
-          <h4>The card</h4>
+          <h4>Explore the mailer</h4>
           <a href="#perks">The perks</a>
-          <a href="#packages">Packages</a>
-          <a href="#map">Route map</a>
+          <a href="#mailer">Ad sizes</a>
+          <a href="#packages">Sample budgets</a>
+          <a href="#map">Route planner</a>
           <a href="#reserve">How it works</a>
         </nav>
         <div className="site-footer__fine">
-          <h4>The fine print</h4>
-          <p>
-            10¢ PER MAILBOX
-            <br />
-            QR TRACKING INCLUDED
-            <br />
-            USPS FIRST-CLASS
-            <br />
-            $100 MONTHLY GIVEAWAY
-          </p>
+          <h4>Good to know</h4>
+          <ul className="site-footer__details">
+            <li><strong>From 10¢ per door</strong><span>For a 1/6-panel ad.</span></li>
+            <li><strong>1,000-home mailing minimum</strong><span>No minimum for a free sample.</span></li>
+            <li><strong>Shared mailers print once filled</strong><span>Routes, availability, and mailing dates confirmed with HLN.</span></li>
+          </ul>
+          <p className="site-footer__reporting">Advertiser response reporting is coming soon.</p>
         </div>
       </div>
       <div className="site-footer__bar">
-        <span>© 2026 Houston Local Network — Houston, TX</span>
-        <span className="site-footer__tag">Shop local. Support local. Win local.</span>
+        <span>© {new Date().getFullYear()} Houston Local Network — Houston, TX</span>
+        <span className="site-footer__tag">Shop local. Support local.</span>
       </div>
     </footer>
   );
