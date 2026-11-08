@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { validate } from '../api/sample-requests.mjs';
+const base = {name:'Test',business:'Test business',email:'test@example.com',area:'Houston',promotion:'A sample offer',consent:'yes',size:'',routes:[],assets:[]};
+assert.equal(validate(base).adSize,'Help me choose');
+assert.equal(validate({...base,size:'5'}).adSize,'2/3 panel');
+assert.deepEqual(validate({...base,routes:['77357C001','77357C001']}).requestedRoutes,['77357C001']);
+for (const changes of [{email:'bad'},{name:' '},{consent:''},{size:'9'},{routes:['invalid']},{companyFax:'spam'},{assets:[{name:'x.svg',data:Buffer.from('<svg/>').toString('base64')}]},{promotion:'x'.repeat(3001)}]) assert.throws(()=>validate({...base,...changes}));
+const png = Buffer.from([137,80,78,71,13,10,26,10]);
+assert.equal(validate({...base,assets:[{name:'logo.png',data:png.toString('base64')}]}).assets[0].type,'image/png');
+const large = Buffer.alloc(3*1024*1024+1);png.copy(large);
+assert.throws(()=>validate({...base,assets:[{name:'large.png',data:large.toString('base64')}]}));
+console.log('Sample request validation passed: optional plan, ad sizes, routes, contact details, consent and upload limits.');
