@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { notificationPayload, notifySampleRequest } from '../server/sample-notification.mjs';
+process.env.HLN_NOTIFICATION_TO='owner@example.com';
+const request = {name:'Test',business:'Acme <script>alert(1)</script>\r\nInjected: header',email:'test@example.com',phone:'',website:'',area:'Houston',promotion:'New service',action:'Call us',adSize:'2/3 panel',requestedRoutes:['77357R001'],notes:'',assets:[{name:'../../untrusted.png',extension:'png',bytes:Buffer.from([137,80,78,71,13,10,26,10])}]};
+const payload = notificationPayload(request,'test-id','2026-11-08T00:00:00Z');
+assert.ok(!payload.html.includes('<script>'));assert.ok(!payload.subject.includes('\n'));assert.ok(payload.html.includes('77357R001'));assert.ok(payload.html.includes('2/3 panel'));
+assert.deepEqual(payload.to,['owner@example.com']);assert.equal(payload.reply_to,'test@example.com');assert.equal(payload.attachments[0].filename,'artwork-1.png');assert.deepEqual(Buffer.from(payload.attachments[0].content,'base64'),request.assets[0].bytes);assert.match(payload.text,/Reference: test-id/);
+assert.deepEqual(notificationPayload({...request,assets:[]},'id','date').attachments,[]);
+process.env.RESEND_API_KEY='test-key';
+await notifySampleRequest(request,'id','date',async(url,options)=>{assert.equal(url,'https://api.resend.com/emails');assert.equal(options.headers['Idempotency-Key'],'hln-sample/id');assert.equal(options.headers.Authorization,'Bearer test-key');return new Response('{"id":"provider-id"}',{status:200});});
+for(const response of [new Response('Accepted',{status:200}),new Response('{}',{status:500}),new Response('{"sent":true}',{status:200})]) await assert.rejects(()=>notifySampleRequest(request,'id','date',async()=>response));
+delete process.env.RESEND_API_KEY;await assert.rejects(()=>notifySampleRequest(request,'id','date'));
+console.log('Passed: fixed recipient, reply-to, email escaping, safe attachment names, bytes, no-artwork requests, idempotency and delivery errors.');
