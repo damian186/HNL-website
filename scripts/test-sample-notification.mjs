@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { unzipSync, strFromU8 } from 'fflate';
+import { notificationPayload, notifySampleRequest } from '../server/sample-notification.mjs';
+const request = {name:'Test',business:'Acme <script>alert(1)</script>\r\nInjected: header',email:'test@example.com',phone:'',website:'',area:'Houston',promotion:'New service',action:'Call us',adSize:'2/3 panel',requestedRoutes:['77357R001'],notes:'',assets:[{name:'../../untrusted.png',extension:'png',bytes:Buffer.from([137,80,78,71,13,10,26,10])}]};
+const payload = notificationPayload(request,'test-id','2026-11-08T00:00:00Z');
+assert.ok(!payload.html.includes('<script>'));assert.ok(!payload.subject.includes('\n'));assert.ok(payload.html.includes('77357R001'));assert.ok(payload.html.includes('2/3 panel'));
+const zip = unzipSync(Buffer.from(payload.artworkZip,'base64'));assert.deepEqual(Object.keys(zip),['request.txt','artwork-1.png']);assert.deepEqual(Buffer.from(zip['artwork-1.png']),request.assets[0].bytes);assert.match(strFromU8(zip['request.txt']),/Reference: test-id/);
+assert.deepEqual(Object.keys(unzipSync(Buffer.from(notificationPayload({...request,assets:[]},'id','date').artworkZip,'base64'))),['request.txt']);
+process.env.HLN_SAMPLE_NOTIFICATION_WEBHOOK='https://example.com/test-hook';
+await notifySampleRequest(request,'id','date',async()=>new Response('{"sent":true}',{status:200}));
+for(const response of [new Response('Accepted',{status:200}),new Response('{}',{status:500}),new Response('{"sent":false}',{status:200})]) await assert.rejects(()=>notifySampleRequest(request,'id','date',async()=>response));
+console.log('Passed: email escaping, safe ZIP paths, artwork bytes, optional artwork, and confirmed delivery handling.');

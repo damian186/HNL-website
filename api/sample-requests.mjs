@@ -1,5 +1,6 @@
 import { put, del } from '@vercel/blob';
 import { randomUUID } from 'node:crypto';
+import { notifySampleRequest } from '../server/sample-notification.mjs';
 const LIMIT = 3 * 1024 * 1024;
 const sizes = ['1/6 panel', '1/4 panel', '1/3 panel', '1/2 panel', 'Full panel', '2/3 panel'];
 export function validate(body) {
@@ -51,6 +52,14 @@ export default async function handler(req, res) {
       uploaded.push(blob.url); assets.push({name:asset.name,contentType:asset.type,bytes:asset.bytes.length,pathname:blob.pathname});
     }
     await put(`${prefix}/request.json`, JSON.stringify({...request,assets,id,createdAt,status:'new'},null,2), {access:'private',contentType:'application/json',addRandomSuffix:false});
+    // A saved request remains successful even when email delivery needs attention.
+    try {
+      await notifySampleRequest(request, id, createdAt);
+      await put(`${prefix}/notification.json`, JSON.stringify({status:'sent',sentAt:new Date().toISOString()}), {access:'private',contentType:'application/json',addRandomSuffix:false});
+    } catch {
+      console.error('HLN sample request notification pending', id);
+      await put(`${prefix}/notification.json`, JSON.stringify({status:'pending',updatedAt:new Date().toISOString()}), {access:'private',contentType:'application/json',addRandomSuffix:false}).catch(()=>{});
+    }
     return res.status(201).json({reference:id});
   } catch {
     if (uploaded.length) await del(uploaded).catch(()=>{});
